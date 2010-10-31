@@ -11,7 +11,7 @@ LOG_FORMAT = '%(asctime)s %(levelname)-8s %(message)s'
 LOG_DATEFMT = '%Y-%m-%d %H:%M:%S'
 LOG_LEVEL = _DEBUG
 
-MAX_SLEEP = 4
+MAX_SLEEP = 5
 
 LOG_DIR = '/var/local/energy/log'
 GRAPH_LOG_NAME = 'energygraph.log'
