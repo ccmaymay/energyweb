@@ -1,0 +1,33 @@
+<html>
+<head>
+
+<title>Wireless Electric Utility Web Monitor</title>
+
+<script type="text/javascript">
+    function refreshgraph() {
+        document.getElementById('graph').src = 'graph.png?' + Date.parse(new Date().toString());
+        setTimeout("refreshgraph()", 10000);
+    }
+</script>
+
+<style type="text/css">
+    img.center 
+    {
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+    }
+</style>
+
+</head>
+<body>
+
+<script type="text/javascript">
+    setTimeout("refreshgraph()", 10000);
+</script>
+
+<img src="graph.png" class="center" id="graph" />
+
+</body>
+</html>
+

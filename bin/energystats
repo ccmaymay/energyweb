@@ -1,0 +1,59 @@
+#!/usr/bin/python
+
+import psycopg2, time, os
+
+LOG_DIR = '/var/local/energy/log'
+SOURCES = {'Atwood': (('AtwoodDorm', 'Atwood', True, '#ff0000'),),
+           'Case': (('CaseDorm', 'Case', True, '#ff7a00'),),
+           'East': (('EastDorm1', 'East 1', True, '#41db00'),
+                    ('EastDorm2', 'East 2', False, '#00bd39')),
+           'Linde': (('LindeDorm', 'Linde', True, '#0776a0'),),
+           'North': (('NorthDorm1', 'North 1', True, '#c10087'),
+                    ('NorthDorm2', 'North 2', False, '#40025f'),
+                    ('NorthDorm3', 'North HVAC', True, '#000000')),
+           'Sontag': (('SontagDorm', 'Sontag', True, '#a63f00'),),
+           'South': (('SouthDorm', 'South', True, '#9c02a7'),),
+           'West': (('WestDorm1', 'West 1', True, '#2e16b1'),
+                    ('WestDorm2', 'West 2', False, '#5c5c5c'),
+                    ('EastDorm3', 'West HVAC', True, '#638700'))}
+
+def main():
+    from logging import warning, info, debug, basicConfig as logging_basicConfig, INFO
+    logging_basicConfig(format='%(asctime)s %(levelname)-8s %(message)s', datefmt='%Y-%m-%d %H:%M:%S', filename=os.path.join(LOG_DIR, 'energystats.log'), level=INFO)
+    conn = psycopg2.connect('dbname=energy user=energy')
+    cur = conn.cursor()
+    info('Stats compiler starting work.')
+    last_loop_end = time.time()
+
+    while True:
+        cur.execute('SELECT c1 FROM ' + SOURCES['East'][0][0] + ' ORDER BY c1 ASC;')
+        approx_beginning = cur.fetchone()[0]
+        for (k, v) in SOURCES.items():
+            tot24 = 0
+            tot = 0
+            j = 0
+            for (tb, label, c5, color) in v:
+                q = 'SELECT AVG(c3 + c4' + (c5 and ' + c5' or '') + ') / 1000 FROM ' + tb + ' WHERE now() - c1 <= interval \'24 hours\';'
+                cur.execute(q)
+                power24 = cur.fetchone()[0]
+                tot24 += power24
+                q = 'SELECT AVG(c3 + c4' + (c5 and ' + c5' or '') + ') / 1000 FROM ' + tb + ';'
+                cur.execute(q)
+                power = cur.fetchone()[0]
+                tot += power
+                j += 1
+            if j > 1:
+                pass
+
+        # write to file
+
+        nap = 5 - (time.time() - last_loop_end)
+        if nap > 0:
+            time.sleep(nap)
+        last_loop_end = time.time()
+
+    cur.close()
+    conn.close()
+
+if __name__ == '__main__':
+    main()
