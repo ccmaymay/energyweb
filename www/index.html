@@ -1,12 +1,22 @@
+<!doctype html>
 <html>
 <head>
 
 <title>Wireless Electric Utility Web Monitor</title>
 
+<script type="text/javascript" src="jquery.js" />
 <script type="text/javascript">
-    function refreshgraph() {
+    function refreshdata() {
         document.getElementById('energygraph').src = 'energygraph.png?' + Date.parse(new Date().toString());
-        setTimeout("refreshgraph()", 10000);
+        $.getJSON('energystats.js', function(data) {
+            ab = new Date(1000 * data.ApproxBeginning);
+            $('#approxbegin').empty();
+            $('#approxbegin').append(ab.toString());
+            $('#Atwood24hr').empty();
+            $('#Atwood24hr').append(data.Atwood[0])
+            $('#Atwood24hr').append(data.Atwood[1])
+        });
+        setTimeout("refreshdata()", 10000);
     }
 </script>
 
@@ -23,10 +33,46 @@
 <body>
 
 <script type="text/javascript">
-    setTimeout("refreshgraph()", 10000);
+    setTimeout("refreshdata()", 500);
 </script>
 
 <img src="energygraph.png" class="center" id="energygraph" />
+
+<table class="center" id="energystats">
+    <tr>
+        <td>Dorm</td>
+        <td>Atwood</td>
+        <td>Case</td>
+        <td>East</td>
+        <td>Linde</td>
+        <td>North</td>
+        <td>Sontag</td>
+        <td>South</td>
+        <td>West</td>
+    </tr>
+    <tr>
+        <td>24-hour average (kW)</td>
+        <td id="Atwood24hr"></td>
+        <td id="Case24hr"></td>
+        <td id="East24hr"></td>
+        <td id="Linde24hr"></td>
+        <td id="North24hr"></td>
+        <td id="Sontag24hr"></td>
+        <td id="South24hr"></td>
+        <td id="West24hr"></td>
+    </tr>
+    <tr>
+        <td>Average since <span id="approxbegin"></span> (kW)</td>
+        <td id="AtwoodTot"></td>
+        <td id="CaseTot"></td>
+        <td id="EastTot"></td>
+        <td id="LindeTot"></td>
+        <td id="NorthTot"></td>
+        <td id="SontagTot"></td>
+        <td id="SouthTot"></td>
+        <td id="WestTot"></td>
+    </tr>
+</table>
 
 </body>
 </html>

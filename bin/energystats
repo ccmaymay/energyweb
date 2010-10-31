@@ -16,15 +16,18 @@ def main():
     last_loop_end = time.time()
 
     while True:
-        cur.execute('SELECT rdngtime FROM ' + SENSORS['East'][0]['tb'] 
-                    + ' ORDER BY rdngtime ASC;')
-        approx_beginning = cur.fetchone()[0]
         totals = dict()
+        approx_beginnings = []
         for (k, v) in SENSORS.items():
             tot24 = 0
             tot = 0
             subs = dict()
             for d in v:
+                # This is inefficient (but that may not be an issue)
+                cur.execute('SELECT rdngtime FROM ' + SENSORS['East'][0]['tb'] 
+                            + ' ORDER BY rdngtime ASC;')
+                approx_beginnings.append(cur.fetchone()[0])
+
                 q = ('SELECT AVG(awatthr + bwatthr' 
                      + (d['cwatthr'] and ' + cwatthr' or '') 
                      + ') / 1000 FROM ' + d['tb'] + ' WHERE '
@@ -40,6 +43,8 @@ def main():
                 tot += power
                 subs[d['label']] = (power24, power)
             totals[k] = (tot24, tot, subs)
+
+        totals['ApproxBeginning'] = time.mktime(min(approx_beginnings).timetuple())
 
         with open(STATS_PATH1, 'w') as f:
             simplejson.dump(totals, f)
