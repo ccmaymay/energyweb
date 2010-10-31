@@ -60,3 +60,10 @@ table.center
     padding: 0px;
     border-right: 1px solid black;
 }
+
+p#poweredby
+{
+    text-align: center;
+    font-size: 16px;
+    font-family: sans-serif;
+}
