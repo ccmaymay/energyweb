@@ -338,3 +338,22 @@ printenv
 echo $GIT_EDITOR
 vi .bashrc
 exit
+ssh cjmay@134.173.41.242
+ls /usr/local/lib
+ls /usr/local/lib/python2.6
+ls /usr/local/lib/python2.6/site-packages
+ls
+mkdir lib
+mv bin/energyconfig.py lib/
+echo $PYTHONPATH
+python
+ls
+vi .bashrc
+exit
+grep -r c2 *
+exit
+git commit -a
+git config --global user.name "Chandler May"
+git config --global user.email cjmay4754@gmail.com
+ls
+exit

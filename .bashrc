@@ -99,3 +99,4 @@ if [ -f /etc/bash_completion ] && ! shopt -oq posix; then
 fi
 
 export GIT_EDITOR=/usr/bin/vim
+export PYTHONPATH=/var/local/energy/lib

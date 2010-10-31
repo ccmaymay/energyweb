@@ -1,18 +1,21 @@
 #!/usr/bin/python
 
+
 import psycopg2, time, matplotlib, os, os.path
 from energyconfig import *
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 
+
 HOURS_LOC = mdates.MinuteLocator(byminute=(0, 30))
 HOURS_FMT = mdates.DateFormatter('%l:%M %P')
 
+
 def main():
-    from logging import warning, info, debug, basicConfig as logging_basicConfig, INFO
-    logging_basicConfig(format='%(asctime)s %(levelname)-8s %(message)s', datefmt='%Y-%m-%d %H:%M:%S', filename=os.path.join(LOG_DIR, 'energygraph.log'), level=INFO)
-    conn = psycopg2.connect('dbname=energy user=energy')
+    from logging import warning, info, debug, basicConfig as logging_basicConfig
+    logging_basicConfig(filename=os.path.join(LOG_DIR, GRAPH_LOG_NAME), format=LOG_FORMAT, datefmt=LOG_DATEFMT, level=LOG_LEVEL)
+    conn = psycopg2.connect(PSQL_CONNSTR)
     cur = conn.cursor()
     info('Grapher starting work.')
     last_loop_end = time.time()
@@ -62,6 +65,7 @@ def main():
 
     cur.close()
     conn.close()
+
 
 if __name__ == '__main__':
     main()
