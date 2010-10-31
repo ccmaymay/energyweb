@@ -62,7 +62,7 @@ def main(**kwargs):
         # for tempc:  at Amb = 25C, register = DF = Offset
         tempc = 25 + (ord(data[43]) - int('df', 16)) * 3;
 
-        cur.execute('INSERT INTO' + tb + ''' 
+        cur.execute('INSERT INTO ' + tb + ''' 
                      (rdngtime, awatthr, bwatthr, cwatthr, avarhr, bvarhr,
                       cvarhr, avahr, bvahr, cvahr, airms, birms, cirms,
                       avrms, bvrms, cvrms, freq, tempc)
