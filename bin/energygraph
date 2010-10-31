@@ -13,8 +13,10 @@ HOURS_FMT = mdates.DateFormatter('%l:%M %P')
 
 
 def main():
-    from logging import warning, info, debug, basicConfig as logging_basicConfig
-    logging_basicConfig(filename=os.path.join(LOG_DIR, GRAPH_LOG_NAME), format=LOG_FORMAT, datefmt=LOG_DATEFMT, level=LOG_LEVEL)
+    from logging import warning, info, debug, basicConfig
+    basicConfig(filename=os.path.join(LOG_DIR, GRAPH_LOG_NAME), 
+                format=LOG_FORMAT, datefmt=LOG_DATEFMT, 
+                level=LOG_LEVEL)
     conn = psycopg2.connect(PSQL_CONNSTR)
     cur = conn.cursor()
     info('Grapher starting work.')
@@ -22,21 +24,26 @@ def main():
 
     while True:
         fig = plt.figure(figsize=(16,8))
-        ax1 = fig.add_subplot(111)
+        ax = fig.add_subplot(111)
         for (k, v) in SENSORS.items():
             for d in v:
-                q = ('SELECT rdngtime as x, (awatthr + bwatthr' + (d['cwatthr'] and ' + cwatthr' or '')
-                     + ') / 1000 as y FROM ' + d['tb'] + ' WHERE now() - rdngtime '
-                     + '<= interval \'3 hours\' ORDER BY rdngtime ASC;')
+                q = ('SELECT rdngtime as x, (awatthr + bwatthr' 
+                     + (d['cwatthr'] and ' + cwatthr' or '')
+                     + ') / 1000 as y FROM ' + d['tb'] + ' WHERE '
+                     + 'now() - rdngtime <= interval \'3 hours\' '
+                     + 'ORDER BY rdngtime ASC;')
                 cur.execute(q)
                 x = []
                 y = []
                 for record in cur:
                     x.append(record[0])
                     y.append(record[1])
-                plt.plot_date(x, y, '-', label=d['label'], color=d['color'], xdate=True, ydate=False)
-        ax1.xaxis.set_major_locator(HOURS_LOC)
-        ax1.xaxis.set_major_formatter(HOURS_FMT)
+                if len(x) > 0:
+                    debug(str(x[0]))
+                plt.plot_date(x, y, '-', label=d['label'], color=d['color'], 
+                              xdate=True, ydate=False)
+        ax.xaxis.set_major_locator(HOURS_LOC)
+        ax.xaxis.set_major_formatter(HOURS_FMT)
     
         # The following three lines make the plot bigger so the legend
         # doesn't cover up the data.  I got tired of trying to figure
@@ -50,7 +57,7 @@ def main():
         plt.xlabel('time')
         plt.ylabel('power (kilowatts)')
         plt.title('Energy usage in the last three hours')
-        # ax1.grid(True)
+        # ax.grid(True)
         # fig.autofmt_xdate() # rotate x-axis labels nicely
 
         plt.savefig(GRAPH_PATH1, bbox_inches='tight')

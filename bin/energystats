@@ -6,15 +6,18 @@ from energyconfig import *
 
 
 def main():
-    from logging import warning, info, debug, basicConfig as logging_basicConfig
-    logging_basicConfig(filename=os.path.join(LOG_DIR, STATS_LOG_NAME), format=LOG_FORMAT, datefmt=LOG_DATEFMT, level=LOG_LEVEL)
+    from logging import warning, info, debug, basicConfig
+    basicConfig(filename=os.path.join(LOG_DIR, STATS_LOG_NAME), 
+                format=LOG_FORMAT, datefmt=LOG_DATEFMT, 
+                level=LOG_LEVEL)
     conn = psycopg2.connect(PSQL_CONNSTR)
     cur = conn.cursor()
     info('Stats compiler starting work.')
     last_loop_end = time.time()
 
     while True:
-        cur.execute('SELECT rdngtime FROM ' + SENSORS['East'][0]['tb'] + ' ORDER BY rdngtime ASC;')
+        cur.execute('SELECT rdngtime FROM ' + SENSORS['East'][0]['tb'] 
+                    + ' ORDER BY rdngtime ASC;')
         approx_beginning = cur.fetchone()[0]
         totals = dict()
         for (k, v) in SENSORS.items():
@@ -22,11 +25,16 @@ def main():
             tot = 0
             subs = dict()
             for d in v:
-                q = 'SELECT AVG(awatthr + bwatthr' + (d['cwatthr'] and ' + cwatthr' or '') + ') / 1000 FROM ' + d['tb'] + ' WHERE now() - rdngtime <= interval \'24 hours\';'
+                q = ('SELECT AVG(awatthr + bwatthr' 
+                     + (d['cwatthr'] and ' + cwatthr' or '') 
+                     + ') / 1000 FROM ' + d['tb'] + ' WHERE '
+                     + 'now() - rdngtime <= interval \'24 hours\';')
                 cur.execute(q)
                 power24 = cur.fetchone()[0]
                 tot24 += power24
-                q = 'SELECT AVG(awatthr + bwatthr' + (d['cwatthr'] and ' + cwatthr' or '') + ') / 1000 FROM ' + d['tb'] + ';'
+                q = ('SELECT AVG(awatthr + bwatthr' 
+                     + (d['cwatthr'] and ' + cwatthr' or '') 
+                     + ') / 1000 FROM ' + d['tb'] + ';')
                 cur.execute(q)
                 power = cur.fetchone()[0]
                 tot += power
