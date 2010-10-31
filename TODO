@@ -1,0 +1,7 @@
+* Figure out how to properly start at boot, stop at shutdown.
+  (Try for an init script using pkill -x, perhaps?  Or make the
+  subprocess daemonic...)
+* Can the devices accept more than one connection at a time?
+* Is the stats/graph behavior correct?  (The Rhizome routines,
+  which I tried to reproduce, seems inconsistent.)
+* What about those occasional huge spikes?  (Typically North HVAC.)
