@@ -1,0 +1,62 @@
+img.center 
+{
+    display: block;
+    margin: auto;
+}
+
+h2.center
+{
+    text-align: center;
+    font-size: 18px;
+    font-family: sans-serif;
+}
+
+table
+{
+    text-align: center;
+    font-size: 18px;
+    font-family: sans-serif;
+    border: 2px solid black;
+}
+
+table.center 
+{
+    margin: auto;
+    border-collapse: collapse;
+}
+
+#energystats col
+{
+    width: 90px;
+}
+
+#energystats col.leftthcol
+{
+    width: 210px;
+}
+
+#energystats td
+{
+    padding-top: 4px;
+    padding-bottom: 4px;
+}
+
+#energystats th
+{
+    padding-top: 4px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid black;
+    font-weight: normal;
+}
+
+#energystats td.leftth
+{
+    border-right: 1px solid black;
+}
+
+#energystats th.leftth
+{
+    margin: 0px;
+    padding: 0px;
+    border-right: 1px solid black;
+}

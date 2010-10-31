@@ -2,14 +2,14 @@
 
 
 from os.path import join as _join
-from logging import INFO as _INFO
+from logging import INFO as _INFO, DEBUG as _DEBUG
 
 
 PSQL_CONNSTR = 'dbname=energy user=energy'
 
 LOG_FORMAT = '%(asctime)s %(levelname)-8s %(message)s'
 LOG_DATEFMT = '%Y-%m-%d %H:%M:%S'
-LOG_LEVEL = _INFO
+LOG_LEVEL = _DEBUG
 
 MAX_SLEEP = 5
 

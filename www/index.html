@@ -1,33 +1,12 @@
-<!doctype html>
+<!DOCTYPE HTML>
 <html>
 <head>
 
 <title>Wireless Electric Utility Web Monitor</title>
 
-<script type="text/javascript" src="jquery.js" />
-<script type="text/javascript">
-    function refreshdata() {
-        document.getElementById('energygraph').src = 'energygraph.png?' + Date.parse(new Date().toString());
-        $.getJSON('energystats.js', function(data) {
-            ab = new Date(1000 * data.ApproxBeginning);
-            $('#approxbegin').empty();
-            $('#approxbegin').append(ab.toString());
-            $('#Atwood24hr').empty();
-            $('#Atwood24hr').append(data.Atwood[0])
-            $('#Atwood24hr').append(data.Atwood[1])
-        });
-        setTimeout("refreshdata()", 10000);
-    }
-</script>
-
-<style type="text/css">
-    img.center 
-    {
-        display: block;
-        margin-left: auto;
-        margin-right: auto;
-    }
-</style>
+<link rel="stylesheet" href="index.css" type="text/css" media="screen" />
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="index.js"></script>
 
 </head>
 <body>
@@ -38,20 +17,30 @@
 
 <img src="energygraph.png" class="center" id="energygraph" />
 
+<h2 class="center">Summary</h2>
 <table class="center" id="energystats">
+    <col class="leftthcol" />
+    <col />
+    <col />
+    <col />
+    <col />
+    <col />
+    <col />
+    <col />
+    <col />
     <tr>
-        <td>Dorm</td>
-        <td>Atwood</td>
-        <td>Case</td>
-        <td>East</td>
-        <td>Linde</td>
-        <td>North</td>
-        <td>Sontag</td>
-        <td>South</td>
-        <td>West</td>
+        <th class="leftth">Dorm</th>
+        <th>Atwood</th>
+        <th>Case</th>
+        <th>East</th>
+        <th>Linde</th>
+        <th>North</th>
+        <th>Sontag</th>
+        <th>South</th>
+        <th>West</th>
     </tr>
     <tr>
-        <td>24-hour average (kW)</td>
+        <td class="leftth">24-hour average (kW)</td>
         <td id="Atwood24hr"></td>
         <td id="Case24hr"></td>
         <td id="East24hr"></td>
@@ -62,7 +51,7 @@
         <td id="West24hr"></td>
     </tr>
     <tr>
-        <td>Average since <span id="approxbegin"></span> (kW)</td>
+        <td class="leftth">Average since <span id="approxbegin"></span> (kW)</td>
         <td id="AtwoodTot"></td>
         <td id="CaseTot"></td>
         <td id="EastTot"></td>
