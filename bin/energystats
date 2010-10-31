@@ -1,21 +1,7 @@
 #!/usr/bin/python
 
-import psycopg2, time, os
-
-LOG_DIR = '/var/local/energy/log'
-SOURCES = {'Atwood': (('AtwoodDorm', 'Atwood', True, '#ff0000'),),
-           'Case': (('CaseDorm', 'Case', True, '#ff7a00'),),
-           'East': (('EastDorm1', 'East 1', True, '#41db00'),
-                    ('EastDorm2', 'East 2', False, '#00bd39')),
-           'Linde': (('LindeDorm', 'Linde', True, '#0776a0'),),
-           'North': (('NorthDorm1', 'North 1', True, '#c10087'),
-                    ('NorthDorm2', 'North 2', False, '#40025f'),
-                    ('NorthDorm3', 'North HVAC', True, '#000000')),
-           'Sontag': (('SontagDorm', 'Sontag', True, '#a63f00'),),
-           'South': (('SouthDorm', 'South', True, '#9c02a7'),),
-           'West': (('WestDorm1', 'West 1', True, '#2e16b1'),
-                    ('WestDorm2', 'West 2', False, '#5c5c5c'),
-                    ('EastDorm3', 'West HVAC', True, '#638700'))}
+import psycopg2, time, os, os.path, simplejson
+from energyconfig import *
 
 def main():
     from logging import warning, info, debug, basicConfig as logging_basicConfig, INFO
@@ -26,28 +12,30 @@ def main():
     last_loop_end = time.time()
 
     while True:
-        cur.execute('SELECT c1 FROM ' + SOURCES['East'][0][0] + ' ORDER BY c1 ASC;')
+        cur.execute('SELECT rdngtime FROM ' + SENSORS['East'][0]['tb'] + ' ORDER BY rdngtime ASC;')
         approx_beginning = cur.fetchone()[0]
-        for (k, v) in SOURCES.items():
+        totals = dict()
+        for (k, v) in SENSORS.items():
             tot24 = 0
             tot = 0
-            j = 0
-            for (tb, label, c5, color) in v:
-                q = 'SELECT AVG(c3 + c4' + (c5 and ' + c5' or '') + ') / 1000 FROM ' + tb + ' WHERE now() - c1 <= interval \'24 hours\';'
+            subs = dict()
+            for d in v:
+                q = 'SELECT AVG(awatthr + bwatthr' + (d['cwatthr'] and ' + cwatthr' or '') + ') / 1000 FROM ' + d['tb'] + ' WHERE now() - rdngtime <= interval \'24 hours\';'
                 cur.execute(q)
                 power24 = cur.fetchone()[0]
                 tot24 += power24
-                q = 'SELECT AVG(c3 + c4' + (c5 and ' + c5' or '') + ') / 1000 FROM ' + tb + ';'
+                q = 'SELECT AVG(awatthr + bwatthr' + (d['cwatthr'] and ' + cwatthr' or '') + ') / 1000 FROM ' + d['tb'] + ';'
                 cur.execute(q)
                 power = cur.fetchone()[0]
                 tot += power
-                j += 1
-            if j > 1:
-                pass
+                subs[d['label']] = (power24, power)
+            totals[k] = (tot24, tot, subs)
 
-        # write to file
+        with open(STATS_PATH1, 'w') as f:
+            simplejson.dump(d, f)
+        os.rename(STATS_PATH1, STATS_PATH2)
 
-        nap = 5 - (time.time() - last_loop_end)
+        nap = MAX_SLEEP - (time.time() - last_loop_end)
         if nap > 0:
             time.sleep(nap)
         last_loop_end = time.time()

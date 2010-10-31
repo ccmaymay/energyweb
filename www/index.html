@@ -5,7 +5,7 @@
 
 <script type="text/javascript">
     function refreshgraph() {
-        document.getElementById('graph').src = 'graph.png?' + Date.parse(new Date().toString());
+        document.getElementById('energygraph').src = 'energygraph.png?' + Date.parse(new Date().toString());
         setTimeout("refreshgraph()", 10000);
     }
 </script>
@@ -26,7 +26,7 @@
     setTimeout("refreshgraph()", 10000);
 </script>
 
-<img src="graph.png" class="center" id="graph" />
+<img src="energygraph.png" class="center" id="energygraph" />
 
 </body>
 </html>

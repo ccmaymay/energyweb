@@ -8,7 +8,7 @@
 # hlsearch on (H) or off (h):
 ~h
 # Last Search Pattern:
-~MSle0~/4002
+~MSle0~/c4
 
 # Last Substitute Search Pattern:
 ~MSle0&(
@@ -17,12 +17,13 @@
 $6\.0
 
 # Command Line History (newest to oldest):
-:q
 :wq
-:w
-:q!
 :n
+:w
 :0
+:q
+:G
+:q!
 :%s/7\.0/6\.0/6.0\/5.0/
 :.,19s/(/[/g
 :.,19s/)/]/g
@@ -65,8 +66,21 @@ $6\.0
 :%s/	//
 :%s/bytes/data/g
 :.,$s/East/North/g
+:.,+s/GRAPH/STATS/g
 
 # Search String History (newest to oldest):
+?/c4
+?/c3
+?/c1
+?/c5
+?/items
+?/SOURCES
+?/os.path
+?/hours
+?/_
+?/STATS
+?/json
+?/javascript
 ?/4002
 ?/4001
 ?/connect
@@ -105,18 +119,6 @@ $6\.0
 ?/fig
 ?/figure(
 ?/figflop
-?/shut
-?/shutil
-?/www
-?/min
-?/10 min
-? ('\([^']*\)'
-?/58
-?/x
-?/20
-?/4
-?/'
-?/color
 
 # Expression History (newest to oldest):
 
@@ -126,49 +128,67 @@ $6\.0
 
 # Registers:
 "0	LINE	0
-	            tot24 = 0
-""1	LINE	0
-	        #ax1 = fig.add_subplot(211)
-"2	LINE	0
+	GRAPH_PATH1 = os.path.join(GRAPH_DIR1, GRAPH_FN)
+"1	LINE	0
 	
+"2	LINE	0
+	LOG_DIR = '/var/local/energy/log'
 "3	LINE	0
-	                pass
+	                    ('EastDorm3', 'West HVAC', True, '#638700'))}
 "4	LINE	0
-	            if j > 1:
+	                    ('WestDorm2', 'West 2', False, '#5c5c5c'),
 "5	LINE	0
-	                j += 1
+	           'West': (('WestDorm1', 'West 1', True, '#2e16b1'),
 "6	LINE	0
-	                tot += power
+	           'South': (('SouthDorm', 'South', True, '#9c02a7'),),
 "7	LINE	0
-	                power = cur.fetchone()[0]
+	           'Sontag': (('SontagDorm', 'Sontag', True, '#a63f00'),),
 "8	LINE	0
-	                cur.execute(q)
+	                    ('NorthDorm3', 'North HVAC', True, '#000000')),
 "9	LINE	0
-	                q = 'SELECT AVG(c3 + c4' + (c5 and ' + c5' or '') + ') / 1000 FROM ' + tb + ';'
-"-	CHAR	0
-	y
+	                    ('NorthDorm2', 'North 2', False, '#40025f'),
+""-	CHAR	0
+	vim
 
 # File marks:
-'0  1  0  ~/energygraph
-'1  1  8  ~/bin/energygraph
-'2  14  0  /etc/rc.local
-'3  1  0  ~/copy.sql
-'4  29  22  ~/bin/energymon
-'5  38  0  ~/bin/energymon
-'6  1  0  /etc/rc.local
-'7  13  0  ~/create.sql
-'8  40  31  ~/rhizomegraph.py
-'9  81  38  ~/rhizomegraph.py
+'0  101  6  ~/.bashrc
+'1  25  61  ~/bin/energygraph
+'2  58  22  ~/bin/energygraph
+'3  1  0  ~/energygraph
+'4  1  8  ~/bin/energygraph
+'5  14  0  /etc/rc.local
+'6  1  0  ~/copy.sql
+'7  29  22  ~/bin/energymon
+'8  38  0  ~/bin/energymon
+'9  1  0  /etc/rc.local
 
 # Jumplist (newest first):
+-'  101  6  ~/.bashrc
+-'  1  0  ~/.bashrc
+-'  19  0  ~/.profile
+-'  1  0  ~/.profile
+-'  25  61  ~/bin/energygraph
+-'  27  64  ~/bin/energygraph
+-'  26  80  ~/bin/energygraph
+-'  23  30  ~/bin/energygraph
+-'  9  0  ~/bin/energygraph
+-'  4  25  ~/bin/energygraph
+-'  14  112  ~/bin/energygraph
+-'  3  36  ~/bin/energygraph
+-'  49  50  ~/bin/energygraph
+-'  36  46  ~/bin/energygraph
+-'  1  0  ~/bin/energygraph
+-'  58  22  ~/bin/energygraph
+-'  56  31  ~/bin/energygraph
+-'  53  24  ~/bin/energygraph
+-'  6  0  ~/bin/energygraph
+-'  55  23  ~/bin/energygraph
 -'  1  0  ~/energygraph
--'  1  8  ~/bin/energygraph
 -'  14  0  /etc/rc.local
 -'  1  0  /etc/rc.local
 -'  1  0  ~/copy.sql
 -'  29  22  ~/bin/energymon
 -'  1  0  ~/bin/energymon
--'  16  55  ~/bin/energygraph
 -'  25  20  ~/bin/energymon
 -'  26  20  ~/bin/energymon
 -'  38  0  ~/bin/energymon
@@ -230,47 +250,367 @@ $6\.0
 -'  78  19  ~/rhizomegraph.py
 -'  68  32  ~/rhizomegraph.py
 -'  1  0  ~/rhizomegraph.py
--'  81  38  ~/rhizomegraph.py
--'  17  54  ~/rhizomegraph.py
--'  52  20  ~/rhizomegraph.py
--'  16  0  ~/rhizomegraph.py
--'  57  0  ~/rhizomegraph.py
--'  90  0  ~/rhizomegraph.py
--'  44  8  ~/rhizomegraph.py
--'  84  8  ~/rhizomegraph.py
--'  85  0  ~/rhizomegraph.py
--'  82  8  ~/rhizomegraph.py
--'  83  8  ~/rhizomegraph.py
--'  29  35  ~/rhizomegraph.py
--'  20  50  ~/rhizomegraph.py
--'  19  58  ~/rhizomegraph.py
--'  8  51  ~/rhizomegraph.py
--'  47  63  ~/rhizomegraph.py
--'  72  23  ~/rhizomegraph.py
--'  69  69  ~/rhizomegraph.py
--'  7  0  ~/rhizomegraph.py
--'  34  20  ~/rhizomegraph.py
--'  35  21  ~/rhizomegraph.py
--'  36  21  ~/rhizomegraph.py
--'  37  16  ~/rhizomegraph.py
--'  32  49  ~/rhizomegraph.py
--'  10  22  ~/rhizomegraph.py
--'  9  22  ~/rhizomegraph.py
--'  33  43  ~/rhizomegraph.py
--'  29  22  ~/bin/energymon
--'  1  0  ~/bin/energymon
--'  1  8  ~/bin/energygraph
+-'  25  61  ~/bin/energygraph
+-'  27  64  ~/bin/energygraph
+-'  26  80  ~/bin/energygraph
+-'  23  30  ~/bin/energygraph
+-'  9  0  ~/bin/energygraph
+-'  4  25  ~/bin/energygraph
+-'  14  112  ~/bin/energygraph
+-'  3  36  ~/bin/energygraph
+-'  49  50  ~/bin/energygraph
+-'  36  46  ~/bin/energygraph
 
 # History of marks within files (newest to oldest):
 
-> ~/energygraph
-	"	1	0
+> ~/.bashrc
+	"	101	6
+	^	101	7
+	.	101	6
+	+	101	6
+
+> ~/.profile
+	"	19	0
 
 > ~/bin/energygraph
+	"	25	61
+	^	25	62
+	.	25	61
+	+	53	0
+	+	22	0
+	+	61	0
+	+	58	0
+	+	57	0
+	+	18	30
+	+	54	16
+	+	9	0
+	+	9	35
+	+	8	17
+	+	9	0
+	+	8	0
+	+	3	34
+	+	5	0
+	+	3	33
+	+	53	47
+	+	53	22
+	+	56	40
+	+	9	47
+	+	9	0
+	+	9	36
+	+	9	0
+	+	9	0
+	+	53	30
+	+	56	42
+	+	53	24
+	+	56	31
+	+	9	0
+	+	9	17
+	+	9	12
+	+	58	22
+	+	9	0
+	+	9	0
+	+	9	4
+	+	10	8
+	+	9	8
+	+	35	44
+	+	36	46
+	+	3	0
+	+	4	25
+	+	23	28
+	+	24	22
+	+	25	57
+	+	26	53
+	+	34	74
+	+	9	0
+	+	25	72
+	+	26	80
+	+	27	57
+	+	25	61
+
+> ~/bin/energymon
 	"	1	8
-	.	36	0
-	+	67	0
+	^	53	416
+	.	53	415
+	+	18	22
+	+	6	25
+	+	8	0
+	+	63	33
+	+	64	18
+	+	65	3
+	+	66	0
+	+	67	3
+	+	65	38
+	+	8	0
+	+	9	20
+	+	10	5
+	+	11	9
+	+	10	18
+	+	11	26
+	+	8	18
+	+	53	175
+	+	53	48
+	+	53	194
+	+	51	12
+	+	53	415
+
+> ~/bin/energystats
+	"	27	48
+	^	27	49
+	.	27	42
+	+	3	20
+	+	5	0
+	+	8	145
+	+	11	23
+	+	6	0
+	+	15	0
+	+	42	0
+	+	12	25
+	+	3	24
+	+	5	0
+	+	12	28
+	+	42	37
+	+	38	46
+	+	40	26
+	+	42	0
+	+	41	3
+	+	35	22
+	+	3	36
+	+	38	0
+	+	35	25
+	+	17	17
+	+	33	0
+	+	33	23
+	+	21	20
+	+	32	26
+	+	33	0
+	+	32	0
+	+	21	0
+	+	31	21
+	+	21	24
+	+	31	45
+	+	32	29
+	+	35	27
+	+	36	66
+	+	6	9
+	+	6	9
+	+	6	12
+	+	6	10
+	+	6	15
+	+	6	35
+	+	6	18
+	+	3	35
+	+	35	61
+	+	34	63
+	+	35	32
+	+	34	47
+	+	34	20
+	+	36	57
+	+	6	1
+	+	6	0
+	+	6	0
+	+	6	0
+	+	34	28
+	+	36	28
+	+	6	17
+	+	6	12
+	+	38	22
+	+	6	0
+	+	6	0
+	+	3	45
+	+	4	25
+	+	15	62
+	+	18	28
+	+	22	22
+	+	17	13
+	+	32	17
+	+	23	50
+	+	27	50
+	+	23	98
+	+	27	98
+	+	31	30
+	+	6	0
+	+	23	65
+	+	27	65
+	+	15	84
+	+	23	128
+	+	27	38
+	+	23	48
+	+	27	42
+
+> ~/bin/energyconfig.py
+	"	85	21
+	^	23	31
+	.	28	0
+	+	81	28
+	+	76	28
+	+	21	58
+	+	26	18
 	+	36	0
+	+	37	0
+	+	42	0
+	+	47	0
+	+	52	0
+	+	57	0
+	+	62	0
+	+	67	0
+	+	72	0
+	+	77	0
+	+	82	0
+	+	77	0
+	+	72	0
+	+	67	0
+	+	57	0
+	+	52	0
+	+	31	19
+	+	37	0
+	+	42	0
+	+	47	0
+	+	26	63
+	+	28	33
+	+	21	70
+	+	33	31
+	+	43	31
+	+	48	31
+	+	58	31
+	+	63	31
+	+	68	31
+	+	73	31
+	+	83	31
+	+	77	47
+	+	78	31
+	+	53	31
+	+	38	31
+	+	23	56
+	+	28	23
+	+	33	23
+	+	39	0
+	+	44	0
+	+	49	0
+	+	54	0
+	+	59	0
+	+	64	0
+	+	69	0
+	+	74	0
+	+	79	0
+	+	84	0
+	+	25	39
+	+	30	30
+	+	35	30
+	+	40	30
+	+	45	30
+	+	50	30
+	+	85	30
+	+	80	30
+	+	75	30
+	+	70	30
+	+	65	30
+	+	60	30
+	+	55	30
+	+	21	40
+	+	23	24
+	+	30	2
+	+	35	2
+	+	40	2
+	+	42	0
+	+	43	2
+	+	44	2
+	+	46	0
+	+	45	2
+	+	48	2
+	+	49	2
+	+	50	2
+	+	55	2
+	+	60	2
+	+	63	3
+	+	64	3
+	+	68	4
+	+	69	4
+	+	70	4
+	+	75	4
+	+	80	4
+	+	85	4
+	+	21	7
+	+	21	20
+	+	21	39
+	+	21	0
+	+	25	0
+	+	28	44
+	+	30	0
+	+	33	44
+	+	21	0
+	+	7	0
+	+	23	30
+	+	28	0
+
+> ~/rename.sql
+	"	1	0
+	.	1	0
+	+	1	37
+	+	1	51
+	+	1	38
+	+	1	417
+	+	1	0
+	+	1	124
+	+	1	0
+	+	1	49
+	+	1	38
+	+	1	38
+	+	1	48
+	+	1	0
+	+	1	0
+	+	1	38
+	+	1	38
+	+	1	43
+	+	1	43
+	+	1	46
+	+	1	0
+	+	1	0
+	+	1	39
+	+	1	39
+	+	1	44
+	+	1	44
+	+	1	39
+	+	1	39
+	+	1	39
+	+	1	39
+	+	1	39
+	+	1	39
+	+	1	0
+	+	1	0
+	+	1	39
+	+	1	39
+	+	1	47
+	+	1	48
+	+	1	0
+	+	1	10
+	+	1	20
+	+	1	30
+	+	1	40
+	+	1	50
+	+	1	60
+	+	1	71
+	+	1	82
+	+	1	93
+	+	1	104
+	+	1	114
+	+	1	124
+	+	1	0
+	+	1	0
+	+	1	0
+	+	1	0
+
+> ~/www/index.html
+	"	8	39
+	^	29	52
+	.	29	46
+	+	6	34
+	+	12	30
+	+	5	91
+	+	8	54
+	+	29	46
+
+> ~/energygraph
+	"	1	0
 
 > /etc/rc.local
 	"	14	0
@@ -280,11 +620,6 @@ $6\.0
 
 > ~/copy.sql
 	"	1	0
-
-> ~/bin/energymon
-	"	29	22
-	.	29	22
-	+	29	22
 
 > ~/create.sql
 	"	13	0
@@ -520,14 +855,6 @@ $6\.0
 	+	22	0
 	+	32	71
 	+	30	31
-
-> ~/www/index.html
-	"	5	91
-	^	5	92
-	.	5	91
-	+	6	34
-	+	12	30
-	+	5	91
 
 > ~/www/index.py
 	"	57	171

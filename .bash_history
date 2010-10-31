@@ -202,3 +202,139 @@ ls
 ls ..
 sudo mv old ../energy-old
 exit
+git init
+git add .
+git commit
+git status
+ssh cjmay@134.173.41.242
+exit
+psql
+ls
+cp copy.sql rename.sql
+vi rename.sql
+cat rename.sql
+vi rename.sql
+cat rename.sql
+for d in `tail -n 1 rename.sql` ; do cat >> rename.sql; ALTER TABLE $f DROP COLUMN c2; ALTER TABLE $f RENAME COLUMN c1 to rdngtime; ALTER TABLE $f RENAME COLUMN c3 to awatthr; ALTER TABLE $f RENAME COLUMN c4 to bwatthr; ALTER TABLE $f RENAME COLUMN c5 to cwatthr; ALTER TABLE $f RENAME COLUMN c6 to avarhr; ALTER TABLE $f RENAME COLUMN c7 to bvarhr; ALTER TABLE $f RENAME COLUMN c8 to cvarhr; ALTER TABLE $f RENAME COLUMN c9 to avahr; ALTER TABLE $f RENAME COLUMN c10 to bvahr; ALTER TABLE $f RENAME COLUMN c11 to cvahr; ALTER TABLE $f RENAME COLUMN c12 to airms; ALTER TABLE $f RENAME COLUMN c13 to birms; ALTER TABLE $f RENAME COLUMN c14 to cirms; ALTER TABLE $f RENAME COLUMN c15 to avrms; ALTER TABLE $f RENAME COLUMN c16 to bvrms; ALTER TABLE $f RENAME COLUMN c17 to cvrms; ALTER TABLE $f RENAME COLUMN c18 to freq; ALTER TABLE $f RENAME COLUMN c19 to tempc;
+for d in `tail -n 1 rename.sql` ; do cat << EOF >> rename.sql
+ALTER TABLE $f DROP COLUMN c2;
+ALTER TABLE $f RENAME COLUMN c1 to rdngtime;
+ALTER TABLE $f RENAME COLUMN c3 to awatthr;
+ALTER TABLE $f RENAME COLUMN c4 to bwatthr;
+ALTER TABLE $f RENAME COLUMN c5 to cwatthr;
+ALTER TABLE $f RENAME COLUMN c6 to avarhr;
+ALTER TABLE $f RENAME COLUMN c7 to bvarhr;
+ALTER TABLE $f RENAME COLUMN c8 to cvarhr;
+ALTER TABLE $f RENAME COLUMN c9 to avahr;
+ALTER TABLE $f RENAME COLUMN c10 to bvahr;
+ALTER TABLE $f RENAME COLUMN c11 to cvahr;
+ALTER TABLE $f RENAME COLUMN c12 to airms;
+ALTER TABLE $f RENAME COLUMN c13 to birms;
+ALTER TABLE $f RENAME COLUMN c14 to cirms;
+ALTER TABLE $f RENAME COLUMN c15 to avrms;
+ALTER TABLE $f RENAME COLUMN c16 to bvrms;
+ALTER TABLE $f RENAME COLUMN c17 to cvrms;
+ALTER TABLE $f RENAME COLUMN c18 to freq;
+ALTER TABLE $f RENAME COLUMN c19 to tempc;
+EOF
+; done
+vi rename.sql
+for f in `tail -n 1 rename.sql` ; do cat << EOF >> rename.sql
+ALTER TABLE $f DROP COLUMN c2;
+ALTER TABLE $f RENAME COLUMN c1 to rdngtime;
+ALTER TABLE $f RENAME COLUMN c3 to awatthr;
+ALTER TABLE $f RENAME COLUMN c4 to bwatthr;
+ALTER TABLE $f RENAME COLUMN c5 to cwatthr;
+ALTER TABLE $f RENAME COLUMN c6 to avarhr;
+ALTER TABLE $f RENAME COLUMN c7 to bvarhr;
+ALTER TABLE $f RENAME COLUMN c8 to cvarhr;
+ALTER TABLE $f RENAME COLUMN c9 to avahr;
+ALTER TABLE $f RENAME COLUMN c10 to bvahr;
+ALTER TABLE $f RENAME COLUMN c11 to cvahr;
+ALTER TABLE $f RENAME COLUMN c12 to airms;
+ALTER TABLE $f RENAME COLUMN c13 to birms;
+ALTER TABLE $f RENAME COLUMN c14 to cirms;
+ALTER TABLE $f RENAME COLUMN c15 to avrms;
+ALTER TABLE $f RENAME COLUMN c16 to bvrms;
+ALTER TABLE $f RENAME COLUMN c17 to cvrms;
+ALTER TABLE $f RENAME COLUMN c18 to freq;
+ALTER TABLE $f RENAME COLUMN c19 to tempc;
+EOF
+; ; done
+for f in `tail -n 1 rename.sql` ; do cat << EOF >> rename.sql
+ALTER TABLE $f DROP COLUMN c2;
+ALTER TABLE $f RENAME COLUMN c1 to rdngtime;
+ALTER TABLE $f RENAME COLUMN c3 to awatthr;
+ALTER TABLE $f RENAME COLUMN c4 to bwatthr;
+ALTER TABLE $f RENAME COLUMN c5 to cwatthr;
+ALTER TABLE $f RENAME COLUMN c6 to avarhr;
+ALTER TABLE $f RENAME COLUMN c7 to bvarhr;
+ALTER TABLE $f RENAME COLUMN c8 to cvarhr;
+ALTER TABLE $f RENAME COLUMN c9 to avahr;
+ALTER TABLE $f RENAME COLUMN c10 to bvahr;
+ALTER TABLE $f RENAME COLUMN c11 to cvahr;
+ALTER TABLE $f RENAME COLUMN c12 to airms;
+ALTER TABLE $f RENAME COLUMN c13 to birms;
+ALTER TABLE $f RENAME COLUMN c14 to cirms;
+ALTER TABLE $f RENAME COLUMN c15 to avrms;
+ALTER TABLE $f RENAME COLUMN c16 to bvrms;
+ALTER TABLE $f RENAME COLUMN c17 to cvrms;
+ALTER TABLE $f RENAME COLUMN c18 to freq;
+ALTER TABLE $f RENAME COLUMN c19 to tempc;
+EOF
+; done
+vi rename.sql
+psql -f rename.sql
+psql
+exit
+psql
+exit
+git config -e
+vi .profile .bashrc
+which vim
+vi .bashrc
+exit
+python
+ls
+bin/energystats
+cd bin
+ls
+cp energygraph energyconfig.py
+vi energyconfig.py
+cat energystats >> energyconfig.py
+vi energyconfig.py
+cat energymon >> energyconfig.py
+vi energyconfig.py
+ls
+cd ..
+git commit -a
+ls
+exit
+cd bin
+cp energygraph energystats
+vi energygraph
+vi energystats
+exit
+energygraph
+ls
+top
+ps -o pmem `pgrep energystats`
+ls /tmp
+ls
+cd www
+vi index.html
+cd
+bin/energygraph
+vi bin/energymon 
+python
+ls
+vi bin/energymon
+exit
+vi energygraph
+vi bin/energygraph
+exit
+git commit -a
+printenv
+echo $GIT_EDITOR
+vi .bashrc
+exit

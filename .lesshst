@@ -2,4 +2,5 @@
 .search
 "--glob
 "glob
+"dict
 .shell

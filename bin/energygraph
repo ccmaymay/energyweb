@@ -1,28 +1,13 @@
 #!/usr/bin/python
 
-import psycopg2, time, matplotlib
+import psycopg2, time, matplotlib, os, os.path
+from energyconfig import *
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
-import os
 
-LOG_DIR = '/var/local/energy/log'
-SOURCES = {'Atwood': (('AtwoodDorm', 'Atwood', True, '#ff0000'),),
-           'Case': (('CaseDorm', 'Case', True, '#ff7a00'),),
-           'East': (('EastDorm1', 'East 1', True, '#41db00'),
-                    ('EastDorm2', 'East 2', False, '#00bd39')),
-           'Linde': (('LindeDorm', 'Linde', True, '#0776a0'),),
-           'North': (('NorthDorm1', 'North 1', True, '#c10087'),
-                    ('NorthDorm2', 'North 2', False, '#40025f'),
-                    ('NorthDorm3', 'North HVAC', True, '#000000')),
-           'Sontag': (('SontagDorm', 'Sontag', True, '#a63f00'),),
-           'South': (('SouthDorm', 'South', True, '#9c02a7'),),
-           'West': (('WestDorm1', 'West 1', True, '#2e16b1'),
-                    ('WestDorm2', 'West 2', False, '#5c5c5c'),
-                    ('EastDorm3', 'West HVAC', True, '#638700'))}
-
-hours = mdates.MinuteLocator(byminute=(0, 30))
-hours_fmt = mdates.DateFormatter('%l:%M %P')
+HOURS_LOC = mdates.MinuteLocator(byminute=(0, 30))
+HOURS_FMT = mdates.DateFormatter('%l:%M %P')
 
 def main():
     from logging import warning, info, debug, basicConfig as logging_basicConfig, INFO
@@ -35,20 +20,20 @@ def main():
     while True:
         fig = plt.figure(figsize=(16,8))
         ax1 = fig.add_subplot(111)
-        for (k, v) in SOURCES.items():
-            for (tb, label, c5, color) in v:
-                q = ('SELECT c1 as x, (c3 + c4' + (c5 and ' + c5' or '')
-                     + ') / 1000 as y FROM ' + tb + ' WHERE now() - c1 '
-                     + '<= interval \'3 hours\' ORDER BY c1 ASC;')
+        for (k, v) in SENSORS.items():
+            for d in v:
+                q = ('SELECT rdngtime as x, (awatthr + bwatthr' + (d['cwatthr'] and ' + cwatthr' or '')
+                     + ') / 1000 as y FROM ' + d['tb'] + ' WHERE now() - rdngtime '
+                     + '<= interval \'3 hours\' ORDER BY rdngtime ASC;')
                 cur.execute(q)
                 x = []
                 y = []
                 for record in cur:
                     x.append(record[0])
                     y.append(record[1])
-                plt.plot_date(x, y, '-', label=label, color=color, xdate=True, ydate=False)
-        ax1.xaxis.set_major_locator(hours)
-        ax1.xaxis.set_major_formatter(hours_fmt)
+                plt.plot_date(x, y, '-', label=d['label'], color=d['color'], xdate=True, ydate=False)
+        ax1.xaxis.set_major_locator(HOURS_LOC)
+        ax1.xaxis.set_major_formatter(HOURS_FMT)
     
         # The following three lines make the plot bigger so the legend
         # doesn't cover up the data.  I got tired of trying to figure
@@ -65,12 +50,12 @@ def main():
         # ax1.grid(True)
         # fig.autofmt_xdate() # rotate x-axis labels nicely
 
-        plt.savefig('graph.png', bbox_inches='tight')
+        plt.savefig(GRAPH_PATH1, bbox_inches='tight')
         plt.clf()
         plt.close('all')
-        os.rename('graph.png', '/var/local/energy/www/graph.png')
+        os.rename(GRAPH_PATH1, GRAPH_PATH2)
 
-        nap = 5 - (time.time() - last_loop_end)
+        nap = MAX_SLEEP - (time.time() - last_loop_end)
         if nap > 0:
             time.sleep(nap)
         last_loop_end = time.time()

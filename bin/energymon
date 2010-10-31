@@ -3,23 +3,12 @@
 import socket, psycopg2, datetime, os.path
 from binascii import unhexlify, hexlify
 from multiprocessing import Process
+from energyconfig import *
 
-LOG_DIR = '/var/local/energy/log/'
-SENSORS = (('AtwoodDorm', '172.31.10.11', 8),
-           ('CaseDorm', '172.31.10.31', 24),
-           ('EastDorm1', '172.31.10.71', 4.2 / 10.0),
-           ('EastDorm2', '172.31.10.72', 8),
-           ('EastDorm3', '172.31.10.73', 6),
-           ('LindeDorm', '172.31.10.21', 16),
-           ('NorthDorm1', '172.31.10.61', 4.2 / 10.0),
-           ('NorthDorm2', '172.31.10.62', 8),
-           ('NorthDorm3', '172.31.10.63', 4),
-           ('SontagDorm', '172.31.10.41', 32),
-           ('SouthDorm', '172.31.10.51', 12),
-           ('WestDorm1', '172.31.10.81', 4.2 / 10.0),
-           ('WestDorm2', '172.31.10.82', 8))
-
-def main(tb, ip, factor):
+def main(**kwargs):
+    tb = kwargs['tb']
+    ip = kwargs['ip']
+    factor = kwargs['factor']
     from logging import warning, info, debug, basicConfig as logging_basicConfig, INFO
     logging_basicConfig(format='%(asctime)s %(levelname)-8s %(message)s', datefmt='%Y-%m-%d %H:%M:%S', filename=os.path.join(LOG_DIR, 'energymon.%s.log' % tb), level=INFO)
     conn = psycopg2.connect('dbname=energy user=energy')
@@ -59,9 +48,9 @@ def main(tb, ip, factor):
         bvrms =  ((ord(data[35])<<16)|(ord(data[36])<<8)|(ord(data[37])));
         cvrms =  ((ord(data[38])<<16)|(ord(data[39])<<8)|(ord(data[40])));
         freq = (ord(data[41])<<8)|(ord(data[42]) >> 4);
-        temp = 25 + (ord(data[43]) - int('df', 16)) * 3; #  at Amb = 25C, register = DF = Offset
+        tempc = 25 + (ord(data[43]) - int('df', 16)) * 3; #  at Amb = 25C, register = DF = Offset
 
-        cur.execute('INSERT INTO ' + tb + ' (c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14, c15, c16, c17, c18, c19) VALUES (%s, 0, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);', (datetime.datetime.now(), awatthr, bwatthr, cwatthr, avarhr, bvarhr, cvarhr, avahr, bvahr, cvahr, airms, birms, cirms, avrms, bvrms, cvrms, freq, temp))
+        cur.execute('INSERT INTO ' + tb + ' (rdngtime, awatthr, bwatthr, cwatthr, avarhr, bvarhr, cvarhr, avahr, bvahr, cvahr, airms, birms, cirms, avrms, bvrms, cvrms, freq, tempc) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);', (datetime.datetime.now(), awatthr, bwatthr, cwatthr, avarhr, bvarhr, cvarhr, avahr, bvahr, cvahr, airms, birms, cirms, avrms, bvrms, cvrms, freq, tempc))
         conn.commit()
 
     info('Exiting.')
@@ -71,9 +60,10 @@ def main(tb, ip, factor):
 
 if __name__ == '__main__':
     procs = []
-    for arglist in SENSORS:
-        p = Process(target=main, args=arglist)
-        p.start()
-        procs.append(p)
+    for (k, v) in SENSORS.items():
+        for d in v:
+            p = Process(target=main, kwargs=d)
+            p.start()
+            procs.append(p)
     for p in procs:
         p.join()
