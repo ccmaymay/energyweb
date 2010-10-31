@@ -42,7 +42,7 @@ def main():
             totals[k] = (tot24, tot, subs)
 
         with open(STATS_PATH1, 'w') as f:
-            simplejson.dump(d, f)
+            simplejson.dump(totals, f)
         os.rename(STATS_PATH1, STATS_PATH2)
 
         nap = MAX_SLEEP - (time.time() - last_loop_end)
