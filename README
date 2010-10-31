@@ -1,0 +1,5 @@
+* Ensure .js is recognized as javascript, and served as such, 
+  by the webserver.
+* Set PYTHONPATH=/var/local/energy/lib so that energyconfig.py
+  can be seen.
+* Check lib/energyconfig.py, make sure everything looks sensible.
