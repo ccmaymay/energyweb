@@ -46,6 +46,10 @@ def main():
 
         totals['ApproxBeginning'] = time.mktime(min(approx_beginnings).timetuple())
 
+        # now() stays constant within a transaction, so we must
+        # commit so future now()s will do what we want
+        conn.commit()
+
         with open(STATS_PATH1, 'w') as f:
             simplejson.dump(totals, f)
         os.rename(STATS_PATH1, STATS_PATH2)
