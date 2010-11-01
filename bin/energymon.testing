@@ -1,0 +1,99 @@
+#!/usr/bin/python
+
+
+import socket, psycopg2, datetime, os.path, time
+from binascii import hexlify
+from multiprocessing import Process
+from energyconfig import *
+
+
+def main(**kwargs):
+    tb = kwargs['tb']
+    ip = kwargs['ip']
+    factor = kwargs['factor']
+
+    from logging import warning, info, debug, basicConfig
+    basicConfig(filename=os.path.join(LOG_DIR, MON_LOG_NAME % tb), 
+                format=LOG_FORMAT, datefmt=LOG_DATEFMT, 
+                level=LOG_LEVEL)
+    conn = psycopg2.connect(PSQL_CONNSTR)
+    cur = conn.cursor()
+
+    #s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    #s.connect((ip, 4001))
+    info('Socket connected to %s:%d.' % (ip, 4001))
+
+    while True:
+        data = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRS'
+        #data = ''
+        #while len(data) < 45:
+        #    data += s.recv(1024)
+        #if data[0:4] != 'RTSD': # 52 54 53 44 in hex
+        #    info('Bad data.  Printing data, closing socket, reopening.')
+        #    info(hexlify(data) + '.')
+        #    s.close()
+        #    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        #    s.connect((ip, 4001))
+        #    info('Socket connected to %s:%d.' % (ip, 4001))
+        #else:
+        #    debug(hexlify(data) + '.')
+
+        awatthr = factor * ((ord(data[5]) << 8) | ord(data[6]));
+        bwatthr = factor * ((ord(data[7]) << 8) | ord(data[8]));
+        cwatthr = factor * ((ord(data[9]) << 8) | ord(data[10]));
+        avarhr = factor * ((ord(data[11]) << 8) | ord(data[12]));
+        bvarhr = factor * ((ord(data[13]) << 8) | ord(data[14]));
+        cvarhr = factor * ((ord(data[15]) << 8) | ord(data[16]));
+        avahr = factor * ((ord(data[17]) << 8) | ord(data[18]));
+        bvahr = factor * ((ord(data[19]) << 8) | ord(data[20]));
+        cvahr = factor * ((ord(data[21]) << 8) | ord(data[22]));
+        airms = factor * ((ord(data[23]) << 16) | (ord(data[24]) << 8) 
+                                                | ord(data[25]));
+        birms = factor * ((ord(data[26]) << 16) | (ord(data[27]) << 8) 
+                                                | ord(data[28]));
+        cirms = factor * ((ord(data[29]) << 16) | (ord(data[30]) << 8) 
+                                                | ord(data[31]));
+        avrms = ((ord(data[32]) << 16) | (ord(data[33]) << 8) 
+                                       | ord(data[34]));
+        bvrms = ((ord(data[35]) << 16) | (ord(data[36]) << 8) 
+                                       | ord(data[37]));
+        cvrms = ((ord(data[38]) << 16) | (ord(data[39]) << 8) 
+                                       | ord(data[40]));
+        freq = ((ord(data[41]) << 8) | ord(data[42])) >> 4;
+        # for tempc:  at Amb = 25C, register = DF = Offset
+        tempc = 25 + (ord(data[43]) - int('df', 16)) * 3;
+
+        #cur.execute('INSERT INTO ' + tb + ''' 
+        #             (rdngtime, awatthr, bwatthr, cwatthr, avarhr, bvarhr,
+        #              cvarhr, avahr, bvahr, cvahr, airms, birms, cirms,
+        #              avrms, bvrms, cvrms, freq, tempc)
+        #             VALUES
+        #             (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
+        #              %s, %s, %s, %s, %s);''', 
+        #            (datetime.datetime.now(), awatthr, bwatthr, cwatthr, 
+        #             avarhr, bvarhr, cvarhr, avahr, bvahr, cvahr, airms, 
+        #             birms, cirms, avrms, bvrms, cvrms, freq, tempc))
+        #conn.commit()
+        time.sleep(3)
+
+    info('Exiting.')
+    s.close()
+    cur.close()
+    conn.close()
+
+
+if __name__ == '__main__':
+    procs = []
+    for (k, v) in SENSORS.items():
+        for d in v:
+            p = Process(target=main, kwargs=d)
+            p.start()
+            procs.append((d, p))
+    while True:
+        for i in range(len(procs)):
+            (d, p) = procs[i]
+            if not p.is_alive():
+                p = Process(target=main, kwargs=d)
+                p.start()
+                procs[i] = (d, p)
+        time.sleep(MAX_SLEEP)
