@@ -1,3 +1,4 @@
+* energygraph seems to be using CPU almost 100% of time!! system load is 2.  Need to make sums/averages/etc in other tables NOW.
 * Figure out how to properly start at boot, stop at shutdown.
   (Try for an init script using pkill -x, perhaps?  Or make the
   subprocess daemonic...)
