@@ -62,6 +62,11 @@ table.center
     font-weight: normal;
 }
 
+#energystats tbody #trhead th
+{
+    vertical-align: top;
+}
+
 #energystats tbody #trheadsub th
 {
     border-top: 1px solid black;
@@ -69,12 +74,14 @@ table.center
 
 #energystats tbody #tr24 td
 {
+    vertical-align: top;
     border-top: 2px solid black;
     border-bottom: 1px solid black;
 }
 
 #energystats tbody #trtot td
 {
+    vertical-align: top;
     border-top: 1px solid black;
     border-bottom: 1px solid black;
 }
