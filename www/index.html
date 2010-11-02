@@ -19,48 +19,86 @@
 
 <h2 class="center">Summary</h2>
 <table class="center" id="energystats">
-    <col class="leftthcol" />
-    <col />
-    <col />
-    <col />
-    <col />
-    <col />
-    <col />
-    <col />
-    <col />
-    <tr>
-        <th class="leftth">Dorm</th>
-        <th>Atwood</th>
-        <th>Case</th>
-        <th>East</th>
-        <th>Linde</th>
-        <th>North</th>
-        <th>Sontag</th>
-        <th>South</th>
-        <th>West</th>
-    </tr>
-    <tr>
-        <td class="leftth">24-hour average (kW)</td>
-        <td id="Atwood24hr"></td>
-        <td id="Case24hr"></td>
-        <td id="East24hr"></td>
-        <td id="Linde24hr"></td>
-        <td id="North24hr"></td>
-        <td id="Sontag24hr"></td>
-        <td id="South24hr"></td>
-        <td id="West24hr"></td>
-    </tr>
-    <tr>
-        <td class="leftth">Average since <span id="approxbegin"></span> (kW)</td>
-        <td id="AtwoodTot"></td>
-        <td id="CaseTot"></td>
-        <td id="EastTot"></td>
-        <td id="LindeTot"></td>
-        <td id="NorthTot"></td>
-        <td id="SontagTot"></td>
-        <td id="SouthTot"></td>
-        <td id="WestTot"></td>
-    </tr>
+    <colgroup><col id="leftthcol" />
+        <col />
+        <col />
+        <col class="eastcol" />
+        <col class="eastcol" />
+        <col />
+        <col class="northcol" />
+        <col class="northcol" />
+        <col class="northcol" />
+        <col />
+        <col />
+        <col class="westcol" />
+        <col class="westcol" />
+        <col class="westcol" />
+    </colgroup>
+    <tbody>
+        <tr id="trhead">
+            <th rowspan="2">Dorm</th>
+            <th rowspan="2">Atwood</th>
+            <th rowspan="2">Case</th>
+            <th colspan="2" id="EastHead">East</th>
+            <th rowspan="2">Linde</th>
+            <th colspan="3" id="NorthHead">North</th>
+            <th rowspan="2">Sontag</th>
+            <th rowspan="2">South</th>
+            <th colspan="3" id="WestHead">West</th>
+        </tr>
+        <tr id="trheadsub">
+            <th>1</th>
+            <th>2</th>
+            <th>1</th>
+            <th>2</th>
+            <th>HVAC</th>
+            <th>1</th>
+            <th>2</th>
+            <th>HVAC</th>
+        </tr>
+        <tr id="tr24">
+            <td rowspan="2">24-hour average (kW)</td>
+            <td rowspan="2" id="Atwood24hr"></td>
+            <td rowspan="2" id="Case24hr"></td>
+            <td colspan="2" id="East24hr"></td>
+            <td rowspan="2" id="Linde24hr"></td>
+            <td colspan="3" id="North24hr"></td>
+            <td rowspan="2" id="Sontag24hr"></td>
+            <td rowspan="2" id="South24hr"></td>
+            <td colspan="3" id="West24hr"></td>
+        </tr>
+        <tr id="tr24sub">
+            <td id="East24hr1"></td>
+            <td id="East24hr2"></td>
+            <td id="North24hr1"></td>
+            <td id="North24hr2"></td>
+            <td id="North24hrHVAC"></td>
+            <td id="West24hr1"></td>
+            <td id="West24hr2"></td>
+            <td id="West24hrHVAC"></td>
+        </tr>
+        <tr id="trtot">
+            <td rowspan="2">Average since <span id="approxbegin"></span> (kW)</td>
+            <td rowspan="2" id="AtwoodTot"></td>
+            <td rowspan="2" id="CaseTot"></td>
+            <td colspan="2" id="EastTot"></td>
+            <td rowspan="2" id="LindeTot"></td>
+            <td colspan="3" id="NorthTot"></td>
+            <td rowspan="2" id="SontagTot"></td>
+            <td rowspan="2" id="SouthTot"></td>
+            <td colspan="3" id="WestTot"></td>
+        </tr>
+        <tr id="trtotsub">
+            <td id="EastTot1"></td>
+            <td id="EastTot2"></td>
+            <td id="NorthTot1"></td>
+            <td id="NorthTot2"></td>
+            <td id="NorthTotHVAC"></td>
+            <td id="WestTot1"></td>
+            <td id="WestTot2"></td>
+            <td id="WestTotHVAC"></td>
+        </tr>
+    </tbody>
 </table>
 
 <p id="poweredby">

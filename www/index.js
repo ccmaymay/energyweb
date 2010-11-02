@@ -31,6 +31,16 @@ function refreshdata() {
         $('#EastTot').empty();
         $('#EastTot').append(rnd(data.East[1]));
 
+        $('#East24hr1').empty();
+        $('#East24hr1').append(rnd(data.East[2]['East 1'][0]));
+        $('#EastTot1').empty();
+        $('#EastTot1').append(rnd(data.East[2]['East 1'][1]));
+
+        $('#East24hr2').empty();
+        $('#East24hr2').append(rnd(data.East[2]['East 2'][0]));
+        $('#EastTot2').empty();
+        $('#EastTot2').append(rnd(data.East[2]['East 2'][1]));
+
         $('#Linde24hr').empty();
         $('#Linde24hr').append(rnd(data.Linde[0]));
         $('#LindeTot').empty();
@@ -40,6 +50,21 @@ function refreshdata() {
         $('#North24hr').append(rnd(data.North[0]));
         $('#NorthTot').empty();
         $('#NorthTot').append(rnd(data.North[1]));
+
+        $('#North24hr1').empty();
+        $('#North24hr1').append(rnd(data.North[2]['North 1'][0]));
+        $('#NorthTot1').empty();
+        $('#NorthTot1').append(rnd(data.North[2]['North 1'][1]));
+
+        $('#North24hr2').empty();
+        $('#North24hr2').append(rnd(data.North[2]['North 2'][0]));
+        $('#NorthTot2').empty();
+        $('#NorthTot2').append(rnd(data.North[2]['North 2'][1]));
+
+        $('#North24hrHVAC').empty();
+        $('#North24hrHVAC').append(rnd(data.North[2]['North HVAC'][0]));
+        $('#NorthTotHVAC').empty();
+        $('#NorthTotHVAC').append(rnd(data.North[2]['North HVAC'][1]));
 
         $('#Sontag24hr').empty();
         $('#Sontag24hr').append(rnd(data.Sontag[0]));
@@ -55,6 +80,21 @@ function refreshdata() {
         $('#West24hr').append(rnd(data.West[0]));
         $('#WestTot').empty();
         $('#WestTot').append(rnd(data.West[1]));
+
+        $('#West24hr1').empty();
+        $('#West24hr1').append(rnd(data.West[2]['West 1'][0]));
+        $('#WestTot1').empty();
+        $('#WestTot1').append(rnd(data.West[2]['West 1'][1]));
+
+        $('#West24hr2').empty();
+        $('#West24hr2').append(rnd(data.West[2]['West 2'][0]));
+        $('#WestTot2').empty();
+        $('#WestTot2').append(rnd(data.West[2]['West 2'][1]));
+
+        $('#West24hrHVAC').empty();
+        $('#West24hrHVAC').append(rnd(data.West[2]['West HVAC'][0]));
+        $('#WestTotHVAC').empty();
+        $('#WestTotHVAC').append(rnd(data.West[2]['West HVAC'][1]));
     });
     setTimeout("refreshdata()", 10000);
 }
