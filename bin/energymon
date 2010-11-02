@@ -34,8 +34,6 @@ def main(**kwargs):
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             s.connect((ip, 4001))
             info('Socket connected to %s:%d.' % (ip, 4001))
-        else:
-            debug(hexlify(data) + '.')
 
         awatthr = factor * ((ord(data[5]) << 8) | ord(data[6]));
         bwatthr = factor * ((ord(data[7]) << 8) | ord(data[8]));
