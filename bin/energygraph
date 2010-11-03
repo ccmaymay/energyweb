@@ -41,8 +41,9 @@ def main():
                 # now() stays constant within a transaction, so we must
                 # commit so future now()s will do what we want
                 conn.commit()
-                plt.plot_date(x, y, '-', label=d['label'], color=d['color'], 
-                              xdate=True, ydate=False, linewidth=1.5)
+                plt.plot_date(x, y, d['linestyle'], label=d['label'], 
+                              color=d['color'], xdate=True, ydate=False, 
+                              linewidth=1.5)
         ax.xaxis.set_major_locator(HOURS_LOC)
         ax.xaxis.set_major_formatter(HOURS_FMT)
     
