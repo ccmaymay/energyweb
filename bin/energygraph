@@ -23,7 +23,7 @@ def main():
     while True:
         conn = psycopg2.connect(PSQL_CONNSTR)
         cur = conn.cursor()
-        fig = plt.figure(figsize=(16,8))
+        fig = plt.figure(figsize=(16,7))
         ax = fig.add_subplot(111)
         for (k, v) in SENSORS.items():
             for d in v:
@@ -51,7 +51,7 @@ def main():
         # out how to get the legend outside the graph but still in the
         # image.
         (ymin, ymax) = plt.ylim()
-        ymax *= 7.0/6.0 # Seems to work
+        ymax *= 11.0/10.0 # Seems to work
         plt.ylim(ymin, ymax)
     
         plt.legend(loc='upper left', ncol=7)
