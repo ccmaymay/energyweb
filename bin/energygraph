@@ -52,7 +52,7 @@ def main():
         # out how to get the legend outside the graph but still in the
         # image.
         (ymin, ymax) = plt.ylim()
-        ymax *= 11.0/10.0 # Seems to work
+        ymax *= 7.0/6.0 # Seems to work
         plt.ylim(ymin, ymax)
     
         plt.legend(loc='upper left', ncol=7)
