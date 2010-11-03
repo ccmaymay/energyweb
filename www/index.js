@@ -9,7 +9,7 @@ function refreshdata() {
         $('#approxbegin').empty();
         hrs = (ab.getHours() - 1) % 12 + 1;
         ampm = ((ab.getHours() >= 12) ? 'pm' : 'am');
-        $('#approxbegin').append(ab.getMonth()
+        $('#approxbegin').append((ab.getMonth() + 1)
                                  + '/' + ab.getDate()
                                  + '/' + ab.getFullYear()
                                  + ' ' + hrs
