@@ -13,6 +13,8 @@ LOG_LEVEL = _DEBUG
 
 MAX_SLEEP = 5
 
+WHR_PTS_PER_AVG = 24
+
 LOG_DIR = '/var/local/energy/log'
 GRAPH_LOG_NAME = 'energygraph.log'
 STATS_LOG_NAME = 'energystats.log'

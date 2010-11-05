@@ -1,6 +1,5 @@
 * energygraph seems to be using CPU almost 100% of time!! system load is 2.  Need to make sums/averages/etc in other tables NOW.
 * Figure out how to properly start at boot, stop at shutdown.  (Try for an init script using pkill -x, perhaps?  Or make the subprocess daemonic...)
-* Can the devices accept more than one connection at a time? (NO)
 * What about those occasional huge spikes?  (Typically North HVAC.)
 * Accidentally logging all inputs at the debug level.  This is okay for the time being---actually it might help with the North HVAC issue---but we'll want to restart the monitor at some point so that we stop wasting so much space w logs.  We could do this by writing a script to stop the monitor, clear the logs, and restart the monitor, and we could time execution of this script so that it runs within the 10-second interval between updates.  Perhaps we should also set up another script that polls for a connection to the sensors, in hopes of catching any data that might try to escape.
 * Change color scheme:  make north 1, north 2, north hvac solid, dashed, dotted of all the same color.  Similar for West and East.
@@ -9,3 +8,5 @@
 * Change the page title.
 * North HVAC is North3, West HVAC is East3
 * Is the stats/graph behavior correct?  (The Rhizome routines, which I tried to reproduce, seems inconsistent.):  The power (in Joules) was computed, for the graph and the stats, as (awatthr + bwatthr + cwatthr)/1000 (for each sensor---dorm aggregates are discussed in a moment).  However, the power is computed as (awatthr + bwatthr)/1000 for West2, North2, and East2.  The exception to *this* is that each of the North1, North2, and North3 power measurements were computed as (awatthr + bwatthr + cwatthr)/1000, and were then added together, to make the "North" average.  A similar thing goes for the "East" average (East1 + East2) and the "West" average (West1 + West2 + West3):  The power for each sensor was computed as (awatthr + bwatthr + cwatthr)/1000.  Why, in those cases, were West2, North2, and East2 powers not computed as (awatthr + bwatthr)/1000?
+* Make all scripts shut down cleanly!!!
+* Clean up jitter: 2010-11-03 19:46:59

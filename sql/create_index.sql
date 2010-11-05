@@ -1,0 +1,13 @@
+CREATE UNIQUE INDEX CONCURRENTLY AtwoodDorm_index ON AtwoodDorm (rdngtime);
+CREATE UNIQUE INDEX CONCURRENTLY CaseDorm_index ON CaseDorm (rdngtime);
+CREATE UNIQUE INDEX CONCURRENTLY EastDorm1_index ON EastDorm1 (rdngtime);
+CREATE UNIQUE INDEX CONCURRENTLY EastDorm2_index ON EastDorm2 (rdngtime);
+CREATE UNIQUE INDEX CONCURRENTLY EastDorm3_index ON EastDorm3 (rdngtime);
+CREATE UNIQUE INDEX CONCURRENTLY LindeDorm_index ON LindeDorm (rdngtime);
+CREATE UNIQUE INDEX CONCURRENTLY NorthDorm1_index ON NorthDorm1 (rdngtime);
+CREATE UNIQUE INDEX CONCURRENTLY NorthDorm2_index ON NorthDorm2 (rdngtime);
+CREATE UNIQUE INDEX CONCURRENTLY NorthDorm3_index ON NorthDorm3 (rdngtime);
+CREATE UNIQUE INDEX CONCURRENTLY SontagDorm_index ON SontagDorm (rdngtime);
+CREATE UNIQUE INDEX CONCURRENTLY SouthDorm_index ON SouthDorm (rdngtime);
+CREATE UNIQUE INDEX CONCURRENTLY WestDorm1_index ON WestDorm1 (rdngtime);
+CREATE UNIQUE INDEX CONCURRENTLY WestDorm2_index ON WestDorm2 (rdngtime);

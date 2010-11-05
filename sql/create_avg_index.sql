@@ -1,0 +1,13 @@
+CREATE UNIQUE INDEX CONCURRENTLY AtwoodDormWhrAvgs_index ON AtwoodDormWhrAvgs (rdngtime2);
+CREATE UNIQUE INDEX CONCURRENTLY CaseDormWhrAvgs_index ON CaseDormWhrAvgs (rdngtime2);
+CREATE UNIQUE INDEX CONCURRENTLY EastDorm1WhrAvgs_index ON EastDorm1WhrAvgs (rdngtime2);
+CREATE UNIQUE INDEX CONCURRENTLY EastDorm2WhrAvgs_index ON EastDorm2WhrAvgs (rdngtime2);
+CREATE UNIQUE INDEX CONCURRENTLY EastDorm3WhrAvgs_index ON EastDorm3WhrAvgs (rdngtime2);
+CREATE UNIQUE INDEX CONCURRENTLY LindeDormWhrAvgs_index ON LindeDormWhrAvgs (rdngtime2);
+CREATE UNIQUE INDEX CONCURRENTLY NorthDorm1WhrAvgs_index ON NorthDorm1WhrAvgs (rdngtime2);
+CREATE UNIQUE INDEX CONCURRENTLY NorthDorm2WhrAvgs_index ON NorthDorm2WhrAvgs (rdngtime2);
+CREATE UNIQUE INDEX CONCURRENTLY NorthDorm3WhrAvgs_index ON NorthDorm3WhrAvgs (rdngtime2);
+CREATE UNIQUE INDEX CONCURRENTLY SontagDormWhrAvgs_index ON SontagDormWhrAvgs (rdngtime2);
+CREATE UNIQUE INDEX CONCURRENTLY SouthDormWhrAvgs_index ON SouthDormWhrAvgs (rdngtime2);
+CREATE UNIQUE INDEX CONCURRENTLY WestDorm1WhrAvgs_index ON WestDorm1WhrAvgs (rdngtime2);
+CREATE UNIQUE INDEX CONCURRENTLY WestDorm2WhrAvgs_index ON WestDorm2WhrAvgs (rdngtime2);

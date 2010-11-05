@@ -3,7 +3,6 @@
 
 import socket, psycopg2, datetime, os.path, time
 from binascii import hexlify
-from multiprocessing import Process
 from energyconfig import *
 
 
@@ -19,24 +18,23 @@ def main(**kwargs):
     conn = psycopg2.connect(PSQL_CONNSTR)
     cur = conn.cursor()
 
-    #s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    #s.connect((ip, 4001))
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.connect((ip, 4001))
     info('Socket connected to %s:%d.' % (ip, 4001))
 
     while True:
-        data = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRS'
-        #data = ''
-        #while len(data) < 45:
-        #    data += s.recv(1024)
-        #if data[0:4] != 'RTSD': # 52 54 53 44 in hex
-        #    info('Bad data.  Printing data, closing socket, reopening.')
-        #    info(hexlify(data) + '.')
-        #    s.close()
-        #    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        #    s.connect((ip, 4001))
-        #    info('Socket connected to %s:%d.' % (ip, 4001))
-        #else:
-        #    debug(hexlify(data) + '.')
+        data = ''
+        while len(data) < 45:
+            data += s.recv(1024)
+            if data == '':
+                raise Exception() # error: socket connection broken TODO
+        if data[0:4] != 'RTSD': # 52 54 53 44 in hex
+            info('Bad data.  Printing data, closing socket, reopening.')
+            info(hexlify(data) + '.')
+            s.close()
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.connect((ip, 4001))
+            info('Socket connected to %s:%d.' % (ip, 4001))
 
         awatthr = factor * ((ord(data[5]) << 8) | ord(data[6]));
         bwatthr = factor * ((ord(data[7]) << 8) | ord(data[8]));
@@ -63,18 +61,35 @@ def main(**kwargs):
         # for tempc:  at Amb = 25C, register = DF = Offset
         tempc = 25 + (ord(data[43]) - int('df', 16)) * 3;
 
-        #cur.execute('INSERT INTO ' + tb + ''' 
-        #             (rdngtime, awatthr, bwatthr, cwatthr, avarhr, bvarhr,
-        #              cvarhr, avahr, bvahr, cvahr, airms, birms, cirms,
-        #              avrms, bvrms, cvrms, freq, tempc)
-        #             VALUES
-        #             (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
-        #              %s, %s, %s, %s, %s);''', 
-        #            (datetime.datetime.now(), awatthr, bwatthr, cwatthr, 
-        #             avarhr, bvarhr, cvarhr, avahr, bvahr, cvahr, airms, 
-        #             birms, cirms, avrms, bvrms, cvrms, freq, tempc))
-        #conn.commit()
-        time.sleep(3)
+        cur.execute('INSERT INTO ' + tb + ''' 
+                     (rdngtime, awatthr, bwatthr, cwatthr, avarhr, bvarhr,
+                      cvarhr, avahr, bvahr, cvahr, airms, birms, cirms,
+                      avrms, bvrms, cvrms, freq, tempc)
+                     VALUES
+                     (now(), %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
+                      %s, %s, %s, %s, %s);''', 
+                    (awatthr, bwatthr, cwatthr, 
+                     avarhr, bvarhr, cvarhr, avahr, bvahr, cvahr, airms, 
+                     birms, cirms, avrms, bvrms, cvrms, freq, tempc))
+        cur.execute('SELECT rdngtime2, pts, watthr FROM ' + tb + 'WhrAvgs '
+                    + 'ORDER BY rdngtime2 ASC LIMIT 1 FOR UPDATE;')
+        r = cur.fetchone()
+        t2 = r[0]
+        pts = r[1]
+        watthravg = r[2]
+        if pts < WHR_PTS_PER_AVG:
+            # Note: now() has not advanced since we're in the same transaction
+            cur.execute('UPDATE ' + tb + 'WhrAvgs SET (rdngtime2 = now(), '
+                        + 'pts = %s, watthr = %s) WHERE rdngtime2 = %s;',
+                        (pts + 1, 
+                         (watthravg*pts + awatthr + bwatthr + cwatthr)/(pts+1),
+                         t2))
+        else:
+            # Note: now() has not advanced since we're in the same transaction
+            cur.execute('INSERT INTO ' + tb + 'WhrAvgs (rdngtime1, rdngtime2, '
+                        + 'pts, watthr) VALUES (now(), now(), %s, %s);',
+                        (1, awatthr + bwatthr + cwatthr))
+        conn.commit()
 
     info('Exiting.')
     s.close()
@@ -83,6 +98,7 @@ def main(**kwargs):
 
 
 if __name__ == '__main__':
+    daemon = MyDaemon(PID_FILE_TEMPLATE % 
     procs = []
     for (k, v) in SENSORS.items():
         for d in v:

@@ -1,0 +1,13 @@
+CREATE TABLE AtwoodDormWhrAvgs (rdngtime1 timestamp without time zone not null, rdngtime2 timestamp without time zone not null, pts integer not null, watthr double precision);
+CREATE TABLE CaseDormWhrAvgs (rdngtime1 timestamp without time zone not null, rdngtime2 timestamp without time zone not null, pts integer not null, watthr double precision);
+CREATE TABLE EastDorm1WhrAvgs (rdngtime1 timestamp without time zone not null, rdngtime2 timestamp without time zone not null, pts integer not null, watthr double precision);
+CREATE TABLE EastDorm2WhrAvgs (rdngtime1 timestamp without time zone not null, rdngtime2 timestamp without time zone not null, pts integer not null, watthr double precision);
+CREATE TABLE EastDorm3WhrAvgs (rdngtime1 timestamp without time zone not null, rdngtime2 timestamp without time zone not null, pts integer not null, watthr double precision);
+CREATE TABLE LindeDormWhrAvgs (rdngtime1 timestamp without time zone not null, rdngtime2 timestamp without time zone not null, pts integer not null, watthr double precision);
+CREATE TABLE NorthDorm1WhrAvgs (rdngtime1 timestamp without time zone not null, rdngtime2 timestamp without time zone not null, pts integer not null, watthr double precision);
+CREATE TABLE NorthDorm2WhrAvgs (rdngtime1 timestamp without time zone not null, rdngtime2 timestamp without time zone not null, pts integer not null, watthr double precision);
+CREATE TABLE NorthDorm3WhrAvgs (rdngtime1 timestamp without time zone not null, rdngtime2 timestamp without time zone not null, pts integer not null, watthr double precision);
+CREATE TABLE SontagDormWhrAvgs (rdngtime1 timestamp without time zone not null, rdngtime2 timestamp without time zone not null, pts integer not null, watthr double precision);
+CREATE TABLE SouthDormWhrAvgs (rdngtime1 timestamp without time zone not null, rdngtime2 timestamp without time zone not null, pts integer not null, watthr double precision);
+CREATE TABLE WestDorm1WhrAvgs (rdngtime1 timestamp without time zone not null, rdngtime2 timestamp without time zone not null, pts integer not null, watthr double precision);
+CREATE TABLE WestDorm2WhrAvgs (rdngtime1 timestamp without time zone not null, rdngtime2 timestamp without time zone not null, pts integer not null, watthr double precision);

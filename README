@@ -3,3 +3,8 @@
 * Set PYTHONPATH=/var/local/energy/lib so that energyconfig.py
   can be seen.
 * Check lib/energyconfig.py, make sure everything looks sensible.
+* The measurement devices cannot accept more than one connection
+  at a time.
+* NorthDorm2, WestDorm2, and EastDorm2 are all single phase, hence
+  cwatthr is zero.  The others are three phase so we must consider
+  cwatthr.
