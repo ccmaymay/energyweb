@@ -1,0 +1,105 @@
+img.center 
+{
+    display: block;
+    margin: auto;
+}
+
+h2.center
+{
+    text-align: center;
+    font-size: 16px;
+    font-family: sans-serif;
+}
+
+table.center 
+{
+    margin: auto;
+    border-collapse: collapse;
+}
+
+table#energystats
+{
+    text-align: center;
+    font-size: 16px;
+    font-family: sans-serif;
+    border: 2px solid #999999;
+    margin-top: 40px;
+    -moz-box-shadow: 4px 4px 4px #cccccc;
+    -webkit-box-shadow: 4px 4px 4px #cccccc;
+    box-shadow: 4px 4px 4px #cccccc;
+}
+
+#energystats #colgroupstats col.col1
+{
+    width: 80px;
+    border: 1px solid #bbbbbb;
+}
+
+#energystats #colgroupstats col.col2
+{
+    width: 80px;
+    border: 1px solid #bbbbbb;
+}
+
+#energystats #colgroupstats col.col3
+{
+    width: 80px;
+    border: 1px solid #bbbbbb;
+}
+
+#energystats tbody tr td, th
+{
+    padding-top: 4px;
+    padding-bottom: 4px;
+    padding-left: 4px;
+    padding-right: 4px;
+    vertical-align: top;
+}
+
+#energystats tbody tr td
+{
+    font-weight: normal;
+}
+
+#energystats tbody tr th
+{
+    font-weight: normal;
+}
+
+#energystats tbody #trheadsub th
+{
+    font-weight: normal;
+    border-top: 1px solid #bbbbbb;
+    border-bottom: 2px solid #999999;
+}
+
+#energystats tbody #trweek *
+{
+    border-top: 2px solid #999999;
+    border-bottom: 1px solid #bbbbbb;
+}
+
+#energystats tbody #trmonth *
+{
+    border-top: 1px solid #bbbbbb;
+    border-bottom: 1px solid #bbbbbb;
+}
+
+#energystats colgroup col#leftthcol
+{
+    border-right: 2px solid #999999;
+    border-left: 2px solid #999999;
+    width: 230px;
+}
+
+#energystats tbody tr th.leftth
+{
+    border: 1px solid #bbbbbb;
+}
+
+p#poweredby
+{
+    text-align: center;
+    font-size: 14px;
+    font-family: sans-serif;
+}

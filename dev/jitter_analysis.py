@@ -1,7 +1,8 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 
 import psycopg2, matplotlib, sys, os.path
+sys.path.append('/var/local/energy/lib')
 from energyconfig import *
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt

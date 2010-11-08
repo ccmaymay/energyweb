@@ -8,3 +8,4 @@
 * NorthDorm2, WestDorm2, and EastDorm2 are all single phase, hence
   cwatthr is zero.  The others are three phase so we must consider
   cwatthr.
+* All power readings are capped at 65.536 kW

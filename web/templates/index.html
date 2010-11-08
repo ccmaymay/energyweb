@@ -1,0 +1,83 @@
+$def with (sensor_structure)
+<!DOCTYPE HTML>
+<html>
+<head>
+
+<title>Energy Usage at Mudd</title>
+
+<link rel="stylesheet" href="static/index2.css" type="text/css" media="screen" />
+<script language="javascript" type="text/javascript" src="static/jquery_jqplot/jquery-1.4.2.min.js"></script>
+<script language="javascript" type="text/javascript" src="static/index2.js"></script>
+<!--[if IE]><script language="javascript" type="text/javascript" src="static/jquery_jqplot/excanvas.js"></script><![endif]-->
+<script language="javascript" type="text/javascript" src="static/jquery_jqplot/jquery.jqplot.min.js"></script>
+<link rel="stylesheet" type="text/css" href="static/jquery_jqplot/jquery.jqplot.min.css" />
+
+</head>
+<body>
+
+<div id="graph" style="height:600px;"></div>
+
+<script type="text/javascript">
+    setTimeout("refreshdata(true)", 500);
+</script>
+
+<table class="center" id="energystats">
+    <colgroup id="colgroupstats">
+    <col id="leftthcol" />
+    $for sgs in sensor_structure:
+        $for ss in sgs[2]:
+            <col class="col$(len(sgs[2]))" />
+    </colgroup>
+    <tbody>
+        <tr id="trhead">
+            <th rowspan="2" class="leftth"></th>
+            $for sgs in sensor_structure:
+                $if len(sgs[2]) > 1:
+                    <th colspan="$(len(sgs[2]))">$(sgs[1])</th>
+                $else:
+                    <th rowspan="2">$(sgs[1])</th>
+        </tr>
+        <tr id="trheadsub">
+            $for sgs in sensor_structure:
+                $if len(sgs[2]) > 1:
+                    $for ss in sgs[2]:
+                        <th>$(ss[1])</th>
+        </tr>
+        <tr id="trweek">
+            <th rowspan="2" class="leftth">Average since Monday (kW)</th>
+            $for sgs in sensor_structure:
+                $if len(sgs[2]) > 1:
+                    <td colspan="$(len(sgs[2]))" id="WeeklySG$(sgs[0])"></td>
+                $else:
+                    <td rowspan="2" id="WeeklySG$(sgs[0])"></td>
+        </tr>
+        <tr id="trweeksub">
+            $for sgs in sensor_structure:
+                $if len(sgs[2]) > 1:
+                    $for ss in sgs[2]:
+                        <td id="WeeklyS$(ss[0])"></td>
+        </tr>
+        <tr id="trmonth">
+            <th rowspan="2" class="leftth">Average this month (kW)</th>
+            $for sgs in sensor_structure:
+                $if len(sgs[2]) > 1:
+                    <td colspan="$(len(sgs[2]))" id="MonthlySG$(sgs[0])"></td>
+                $else:
+                    <td rowspan="2" id="MonthlySG$(sgs[0])"></td>
+        </tr>
+        <tr id="trmonthsub">
+            $for sgs in sensor_structure:
+                $if len(sgs[2]) > 1:
+                    $for ss in sgs[2]:
+                        <td id="MonthlyS$(ss[0])"></td>
+        </tr>
+    </tbody>
+</table>
+
+<p id="poweredby">
+    Powered by <a href="http://www.rhizomesystems.com/">Rhizome Systems</a>.
+</p>
+
+</body>
+</html>
+

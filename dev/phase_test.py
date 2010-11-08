@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 
 # The systems are either single phase or three phase.  I noticed that
@@ -15,6 +15,7 @@
 
 
 import psycopg2, sys
+sys.path.append('/var/local/energy/lib')
 from energyconfig import *
 
 
