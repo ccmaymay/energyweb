@@ -35,13 +35,16 @@ function refreshdata(first_time) {
         f = f + $prev_x[$prev_x.length - 1];
     }
     f = f + '.js'
+
     $.getJSON(f, function(data) {
         var y = [];
         var x = [];
         var series_opts = [];
         var sg_inds = [];
+        var missed_week_average, missed_month_average;
         var sgs, grp_week_avg, grp_month_avg, sensor_id, ind, all_data_x;
-        var sensor_structure, sensors, sensor_groups
+        var sensor_structure, sensors, sensor_groups;
+
         if (first_time) {
             all_data_x = data.x;
             sensor_structure = data.sensor_structure;
@@ -67,23 +70,37 @@ function refreshdata(first_time) {
         for (var i=0; i < all_data_x.length; i += tick_interval) {
             x[x.length] = [i+1, epsecs_to_label(all_data_x[i])];
         }
-        // Now organize y values and update the table averages all at once
+
+        // Now organize y values and update the table averages all at once.
+
         // for i in sensor groups...
         for (var i=0; i < sensor_structure.length; i++) {
             sgs = sensor_structure[i];
             grp_week_avg = 0;
             grp_month_avg = 0;
+            missed_week_average = false;
+            missed_month_average = false;
+
             // for j in sensors within the group...
             for (var j=0; j < sgs[1].length; j++) {
                 sensor_id = sgs[1][j];
+
                 // update the per-sensor table averages, if appropriate
                 if (sgs[1].length > 1) {
-                    $('#WeeklyS' + sensor_id).empty();
-                    $('#WeeklyS' + sensor_id).append(rnd(
-                        data.week_averages[sensor_id]));
-                    $('#MonthlyS' + sensor_id).empty();
-                    $('#MonthlyS' + sensor_id).append(rnd(
-                        data.month_averages[sensor_id]));
+                    if (sensor_id in data.week_averages) {
+                        $('#WeeklyS' + sensor_id).empty();
+                        $('#WeeklyS' + sensor_id).append(rnd(
+                            data.week_averages[sensor_id]));
+                    } else {
+                        missed_week_average = true;
+                    }
+                    if (sensor_id in data.month_averages) {
+                        $('#MonthlyS' + sensor_id).empty();
+                        $('#MonthlyS' + sensor_id).append(rnd(
+                            data.month_averages[sensor_id]));
+                    } else {
+                        missed_month_average = true;
+                    }
                 }
                 ind = sg_inds.indexOf(sgs[0]);
                 if (ind < 0) {
@@ -100,22 +117,22 @@ function refreshdata(first_time) {
                      */
                     add_arrays_inplace(y[ind], data.y[sensor_id]);
                 }
-                grp_week_avg += data.week_averages[sensor_id];
-                grp_month_avg += data.month_averages[sensor_id];
+                if (sensor_id in data.week_averages) {
+                    grp_week_avg += data.week_averages[sensor_id];
+                }
+                if (sensor_id in data.month_averages) {
+                    grp_month_avg += data.month_averages[sensor_id];
+                }
             }
-            // Now update table averages for this sensor /group/
-            if (sgs[1].length > 1) {
+
+            // Now update table averages for this sensor group
+            if (! missed_week_average) {
                 $('#WeeklySG' + sgs[0]).empty();
                 $('#WeeklySG' + sgs[0]).append(rnd(grp_week_avg));
+            }
+            if (! missed_month_average) {
                 $('#MonthlySG' + sgs[0]).empty();
                 $('#MonthlySG' + sgs[0]).append(rnd(grp_month_avg));
-            } else {
-                $('#WeeklySG' + sgs[0]).empty();
-                $('#WeeklySG' + sgs[0]).append(rnd(
-                    data.week_averages[sensor_id]));
-                $('#MonthlySG' + sgs[0]).empty();
-                $('#MonthlySG' + sgs[0]).append(
-                    rnd(data.month_averages[sensor_id]));
             }
         }
         if (! first_time) {
