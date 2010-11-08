@@ -9,7 +9,7 @@ web.py application to power the (presently very small) web interface
 import sys
 sys.path.append('/var/local/energy/lib')
 import web, psycopg2, simplejson, datetime, time
-from energyconfig2 import *
+from energyconfig import *
 
 
 web.config.debug = WEB_DEBUG
@@ -113,7 +113,7 @@ class index_data(object):
                        ORDER BY date_trunc('week', rdngtime_first) DESC
                        LIMIT %s;''',
                     (AVG_TYPE_WEEK, num_sensors))
-        week_averages = dict([(i, None) for i in sensors.items()])
+        week_averages = {}
         first_row = True
         for r in cur:
             if first_row:
@@ -131,7 +131,7 @@ class index_data(object):
                        ORDER BY date_trunc('month', rdngtime_first) DESC
                        LIMIT %s;''',
                     (AVG_TYPE_MONTH, num_sensors))
-        month_averages = dict([(i, None) for i in sensors.items()])
+        month_averages = {}
         first_row = True
         for r in cur:
             if first_row:
@@ -218,15 +218,18 @@ class index_data(object):
         # data up to a certain point, we save bandwidth and client
         # processing time by only sending the new information.
         if data:
-            return simplejson.dumps(dict(x=x, y=y,
-                                         week_averages=week_averages, 
-                                         month_averages=month_averages))
+            return simplejson.dumps({'x': x, 
+                                     'y': y,
+                                     'week_averages': week_averages, 
+                                     'month_averages': month_averages})
         else:
-            return simplejson.dumps(dict(x=x, y=y, sensors=sensors, 
-                                         sensor_groups=sensor_groups, 
-                                         sensor_structure=sensor_structure,
-                                         week_averages=week_averages, 
-                                         month_averages=month_averages))
+            return simplejson.dumps({'x': x, 
+                                     'y': y,
+                                     'sensors': sensors,
+                                     'sensor_groups': sensor_groups,
+                                     'sensor_structure': sensor_structure,
+                                     'week_averages': week_averages, 
+                                     'month_averages': month_averages})
 
 
 if __name__ == '__main__':
