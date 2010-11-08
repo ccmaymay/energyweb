@@ -66,7 +66,7 @@ function refreshdata(first_time) {
             sensor_groups = $prev_sensor_groups;
         }
         // We will pass x to the grapher
-        var tick_interval = Math.floor(all_data_x.length / 10.0);
+        var tick_interval = Math.floor(all_data_x.length / 12.0);
         for (var i=0; i < all_data_x.length; i += tick_interval) {
             x[x.length] = [i+1, epsecs_to_label(all_data_x[i])];
         }
