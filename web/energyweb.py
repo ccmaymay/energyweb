@@ -19,7 +19,7 @@ render = web.template.render(WEB_TEMPLATES)
 
 urls = (
     '/', 'index',
-    '/data(.*).js', 'index_data'
+    '/data(\d*).js', 'index_data'
 )
 
 app = web.application(urls, globals())

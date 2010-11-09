@@ -162,7 +162,7 @@ function refreshdata(first_time) {
 
             },
             title: {
-                text: 'Real-Time Power Consumption at Mudd',
+                text: 'Energy Usage at Mudd',
                 textColor: 'black',
                 fontSize: '18px',
                 fontFamily: 'sans-serif'
