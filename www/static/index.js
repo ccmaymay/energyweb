@@ -1,3 +1,13 @@
+function array_index_of(ar, x) {
+    // (IE doesn't have Array.indexOf)
+    for (var i=0; i < ar.length; i++) {
+        if (ar[i] == x) {
+            return i;
+        }
+    }
+    return -1;
+}
+
 function rnd(kw) {
     return kw.toFixed(2);
 }
@@ -68,7 +78,7 @@ function refreshdata(first_time) {
         // We will pass x to the grapher
         var tick_interval = Math.floor(all_data_x.length / 12.0);
         for (var i=0; i < all_data_x.length; i += tick_interval) {
-            x[x.length] = [i+1, epsecs_to_label(all_data_x[i])];
+            x.push([i+1, epsecs_to_label(all_data_x[i])]);
         }
 
         // Now organize y values and update the table averages all at once.
@@ -102,15 +112,15 @@ function refreshdata(first_time) {
                         missed_month_average = true;
                     }
                 }
-                ind = sg_inds.indexOf(sgs[0]);
+                ind = array_index_of(sg_inds, sgs[0]);
                 if (ind < 0) {
                     // we didn't haven't looked at this sensor group before
-                    y[y.length] = data.y[sensor_id];
-                    sg_inds[sg_inds.length] = sgs[0];
-                    series_opts[series_opts.length] = {
+                    y.push(data.y[sensor_id]);
+                    sg_inds.push(sgs[0]);
+                    series_opts.push({
                         label: sensor_groups[sgs[0]][0],
                         color: '#' + sensor_groups[sgs[0]][1]
-                    };
+                    });
                 } else {
                     /* We've already processed data for this sensor.
                      * Combine the two arrays by adding by-element.
