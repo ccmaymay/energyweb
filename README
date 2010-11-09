@@ -7,6 +7,8 @@ system).
 
 External Requirements: recent Python (not 3.x), PostgreSQL, psycopg2
 
+Internet Explorer is not supported at this time.
+
 Power monitoring devices developed by Joseph King in the Engineering
 Department are installed around campus.  These are cheap to make, thus
 providing an attractive alternative to many energy monitoring solutions 
