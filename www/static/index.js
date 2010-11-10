@@ -180,7 +180,6 @@ function refreshdata_json_cb(data) {
         }
     };
     $.jqplot('graph', y, graph_opts);
-    delete graph_opts;
 
     /* Store all data for the next iteration and set the timer.
      * (This procedure can probably be improved considerably.)
@@ -195,14 +194,6 @@ function refreshdata_json_cb(data) {
     if ($first_time) {
         $first_time = false;
     }
-
-    delete y;
-    delete x;
-    delete series_opts;
-    delete sg_inds;
-    delete missed_week_average, missed_month_average;
-    delete sgs, grp_week_avg, grp_month_avg, sensor_id, ind, all_data_x;
-    delete sensor_structure, sensors, sensor_groups;
 
     setTimeout(refreshdata, 10000);
 }
@@ -222,14 +213,14 @@ function refreshdata() {
      * is true, retrieve all data needed for the page.  Otherwise, use
      * data stored from last time and only retrieve the delta.
      *
-     * If we ask for data123456789.js, we will get the data since timestamp
-     * 123456789 (seconds since epoch).
+     * If we ask for data123456789.json, we will get the data since 
+     * timestamp 123456789 (seconds since epoch).
      */
     var f = 'data';
     if (! $first_time) {
         f = f + $prev_x[$prev_x.length - 1];
     }
-    f = f + '.js'
+    f = f + '.json'
 
     $.getJSON(f, refreshdata_json_cb);
 }

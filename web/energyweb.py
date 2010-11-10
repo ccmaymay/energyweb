@@ -19,7 +19,7 @@ render = web.template.render(WEB_TEMPLATES)
 
 urls = (
     '/', 'index',
-    '/data(\d*).js', 'index_data'
+    '/data(\d*).json', 'index_data'
 )
 
 app = web.application(urls, globals())
@@ -217,6 +217,7 @@ class index_data(object):
         # Once more, if the client has indicated that they have
         # data up to a certain point, we save bandwidth and client
         # processing time by only sending the new information.
+        web.header('Content-Type', 'application/json')
         if data:
             return simplejson.dumps({'x': x, 
                                      'y': y,
