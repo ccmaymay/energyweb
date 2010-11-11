@@ -8,7 +8,7 @@ web.py application to power the (presently very small) web interface
 
 import sys
 sys.path.append('/var/local/energy/lib')
-import web, psycopg2, simplejson, datetime, time
+import web, psycopg2, simplejson, datetime, calendar
 from energyconfig import *
 
 
@@ -19,7 +19,7 @@ render = web.template.render(WEB_TEMPLATES)
 
 urls = (
     '/', 'index',
-    '/data(\d*).json', 'index_data'
+    '/data(\d*).json', 'index_data',
 )
 
 app = web.application(urls, globals())
@@ -176,7 +176,7 @@ class index_data(object):
                        ORDER BY rdngtime_per ASC, sid ASC;''']
 
         if data:
-            last_per = datetime.datetime.fromtimestamp(int(data))
+            last_per = datetime.datetime.utcfromtimestamp(int(data) / 1000)
             exe_args.append((last_per,))
 
         cur.execute(*exe_args)
@@ -194,41 +194,49 @@ class index_data(object):
         # returned so that the client will have an array of the sensor
         # reading times and an array for sensor containing the power
         # readings at those times.)
-        x = []
         y = {}
+        iter_num = 1
         r = cur.fetchone()
         per = r[2]
-        first_time = True
         while r is not None:
-            x.append(time.mktime(per.timetuple()))
+            x = int(calendar.timegm(per.timetuple()) * 1000)
             for sensor_id in sensors.keys():
-                if first_time:
-                    y[sensor_id] = []
+                sg_id = sensors[sensor_id][1]
+                if not y.has_key(sg_id):
+                    y[sg_id] = []
                 if r[2] == per and r[1] == sensor_id:
-                    y[sensor_id].append(float(r[0]))
+                    if len(y[sg_id]) < iter_num:
+                        y[sg_id].append([x, float(r[0])])
+                    else:
+                        if y[sg_id][-1][1] is not None:
+                            y[sg_id][-1][1] += float(r[0])
                     r = cur.fetchone()
                     if r is None:
+                        last_record = x
                         break
                 else:
-                    y[sensor_id].append(None)
-            first_time = False
+                    if len(y[sg_id]) < iter_num:
+                        y[sg_id].append([x, None])
+                    else:
+                        y[sg_id][-1][1] = None
             per += datetime.timedelta(0, 10, 0)
+            iter_num += 1
 
         # Once more, if the client has indicated that they have
         # data up to a certain point, we save bandwidth and client
         # processing time by only sending the new information.
         web.header('Content-Type', 'application/json')
         if data:
-            return simplejson.dumps({'x': x, 
-                                     'y': y,
+            return simplejson.dumps({'y': y,
+                                     'last_record': last_record, 
                                      'week_averages': week_averages, 
                                      'month_averages': month_averages})
         else:
-            return simplejson.dumps({'x': x, 
-                                     'y': y,
+            return simplejson.dumps({'y': y,
                                      'sensors': sensors,
                                      'sensor_groups': sensor_groups,
                                      'sensor_structure': sensor_structure,
+                                     'last_record': last_record, 
                                      'week_averages': week_averages, 
                                      'month_averages': month_averages})
 
