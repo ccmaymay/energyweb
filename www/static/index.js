@@ -1,5 +1,5 @@
 $(function () {
-    // this function is a callback, called when the DOM is loaded
+    // This function is a callback, called when the DOM is loaded
 
     var first_time = true;
     var prev_last_record = null;
@@ -10,6 +10,7 @@ $(function () {
     var prev_sensor_structure = null;
 
     function kw_tickformatter(val, axis) {
+        // Workaround to get units on the y axis
         return val + " kW";
     }
     
@@ -28,7 +29,8 @@ $(function () {
     }
     
     function refreshdata_json_cb(data) {
-        // Given new data from the server, update the page.  
+        // Given new data from the server, update the page (graph and
+        // table).
     
         var y = [];
         var series_opts = [];
@@ -40,20 +42,11 @@ $(function () {
             sensors = data.sensors;
             sensor_groups = data.sensor_groups;
         } else {
-            /* We've already collected some data, so combine it with the new.
-             * A word on this slicing:  We're discarding our latest record,
-             * preferring the new copy from the sever, since last time we may 
-             * have e.g. collected data just before a sensor reported a 
-             * reading (for the 10-second time period we were considering).
-             * Hence, the second latest and older records are always safe---
-             * they will /never/ change.
-             */
             sensor_structure = prev_sensor_structure;
             sensors = prev_sensors;
             sensor_groups = prev_sensor_groups;
         }
     
-        // Now organize y values and update the table averages all at once.
         series = [];
     
         // for i in sensor groups...
@@ -70,8 +63,18 @@ $(function () {
             if (first_time) {
                 y[sensor_group_id] = data.y[sensor_group_id];
             } else {
-                y[sensor_group_id] = prev_y[sensor_group_id].slice(data.y[sensor_group_id].length - 1, 
-                    prev_y[sensor_group_id].length - 1).concat(data.y[sensor_group_id]);
+                /* We've already collected some data, so combine it with the 
+                 * new.  A word on this slicing:  We're discarding our latest 
+                 * record, preferring the new copy from the sever, since last 
+                 * time we may have e.g. collected data just before a sensor 
+                 * reported a reading (for the 10-second time period we were 
+                 * considering).  Hence, the second latest and older records 
+                 * are always safe---they will /never/ change.
+                 */
+                y[sensor_group_id] = prev_y[sensor_group_id].slice(
+                    data.y[sensor_group_id].length - 1, 
+                    prev_y[sensor_group_id].length - 1).concat(
+                    data.y[sensor_group_id]);
             }
             
             series.push({
@@ -102,6 +105,7 @@ $(function () {
                     }
                 }
     
+                // Add sensor averages to the sensor group averages...
                 if (sensor_id in data.week_averages) {
                     grp_week_avg += data.week_averages[sensor_id];
                 }
@@ -121,7 +125,6 @@ $(function () {
             }
         }
         // Finally, make the graph
-        $('#graph').empty();
         graph_opts = {
             series: {
                 lines: {show: true},
@@ -151,9 +154,7 @@ $(function () {
         };
         $.plot($('#graph'), series, graph_opts);
     
-        /* Store all data for the next iteration and set the timer.
-         * (This procedure can probably be improved considerably.)
-         */
+        // Store all data for the next iteration and set the timer.
         prev_last_record = data.last_record;
         prev_y = y;
         prev_sgs = sgs;
@@ -169,12 +170,12 @@ $(function () {
     }
     
     function refreshdata() {
-        /* Call the server, get new data, and update the page.  If $first_time
+        /* Call the server, get new data, and update the page.  If first_time
          * is true, retrieve all data needed for the page.  Otherwise, use
          * data stored from last time and only retrieve the delta.
          *
          * If we ask for data123456789.json, we will get the data since 
-         * timestamp 123456789 (seconds since epoch).
+         * timestamp 123456789 (seconds since epoch, UTC).
          */
         var f = 'data';
         if (! first_time) {

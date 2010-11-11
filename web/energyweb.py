@@ -36,10 +36,11 @@ class index(object):
         cur = conn.cursor()
 
         # Create an array of arrays to efficiently store information
-        # for automatically generating the table of averages.  Sensors will
-        # be grouped by sensor groups, and both levels (sensor groups and
-        # the sensors within them) will be ordered by increasing id for
-        # consistency.  This all makes the templating engine's job easier.
+        # for JavaScript to automatically generate the table of averages.  
+        # Sensors are grouped by sensor groups, and both levels (sensor 
+        # groups and the sensors within them) are ordered by increasing 
+        # id for consistency.  (This is important: the order may be used
+        # by the JavaScript side.)
         cur.execute('''SELECT sensors.id, sensors.name, 
                          sensors.sensor_group_id, sensor_groups.name
                        FROM sensors
@@ -68,7 +69,7 @@ class index_data(object):
         '''
         Return JSON data for generating a graph and table of usage
         averages.  If data is supplied, it is expected to represent
-        a timestamp; return only those graph points since (and
+        a UTC timestamp; return only those graph points since (and
         including) that timestamp.
         '''
 
@@ -93,6 +94,10 @@ class index_data(object):
         cur.execute('''SELECT id, name, color
                        FROM sensor_groups ORDER BY id ASC;''')
         sensor_groups = {}
+        # NOTE: sensor_structure is not the same as in the index
+        # view.  (However, it is similar, and the order of sensor
+        # groups and sensors is the same.)  This should probably be
+        # changed or renamed for the sake of maintainability.
         sensor_structure = []
         for r in cur:
             sensor_groups[r[0]] = r[1:]
@@ -151,11 +156,11 @@ class index_data(object):
         # ten-second intervals.  The javascript can then deal with
         # the null values (the infrequent cases when no reading appears
         # within one of these 10-second bins for a certain sensor) as
-        # it desires.  3 hours, by the way, is the length of time to
-        # be represented on the graph.
+        # it desires.  (3 hours, by the way, is the length of time to
+        # be represented on the graph.)
 
         # If the client has supplied data (a string of digits in the
-        # URL---representing seconds since the epoch), then we only
+        # URL---representing UTC seconds since the epoch), then we only
         # consider data since (and including) that timestamp.
         exe_args = ['''SELECT AVG(watts) / 1000, sid, rdngtime_per
                        FROM 
@@ -176,6 +181,8 @@ class index_data(object):
                        ORDER BY rdngtime_per ASC, sid ASC;''']
 
         if data:
+            # Remember the timestamp represents UTC.  JavaScript
+            # represents times in ms since epoch, hence the division.
             last_per = datetime.datetime.utcfromtimestamp(int(data) / 1000)
             exe_args.append((last_per,))
 
@@ -190,24 +197,33 @@ class index_data(object):
         # latest and older records, however, will never change.
 
         # Now organize the query in a format amenable to the (javascript)
-        # client.  (We essentially transpose the array of information
-        # returned so that the client will have an array of the sensor
-        # reading times and an array for sensor containing the power
-        # readings at those times.)
+        # client.  (The grapher wants (x, y) pairs.)
         y = {}
         iter_num = 1
         r = cur.fetchone()
         per = r[2]
+        # For each 10-second time interval from the start of the query
+        # to the end, we will consider each sensor.  Each sensor group
+        # has a data point in y for each interval.
         while r is not None:
+            # Again, remember that the JavaScript client takes (and
+            # gives) UTC timestamps in ms
             x = int(calendar.timegm(per.timetuple()) * 1000)
             for sensor_id in sensors.keys():
                 sg_id = sensors[sensor_id][1]
                 if not y.has_key(sg_id):
                     y[sg_id] = []
                 if r[2] == per and r[1] == sensor_id:
+                    # We have a record for this interval and sensor
                     if len(y[sg_id]) < iter_num:
+                        # For this interval, this sensor is the first
+                        # one encountered for its sensor group.  Hence
+                        # we must initialize the data point
                         y[sg_id].append([x, float(r[0])])
                     else:
+                        # The data point for this sensor group in this
+                        # time interval has not been created by a
+                        # previous sensor in the group
                         if y[sg_id][-1][1] is not None:
                             y[sg_id][-1][1] += float(r[0])
                     r = cur.fetchone()
@@ -215,9 +231,16 @@ class index_data(object):
                         last_record = x
                         break
                 else:
+                    # There is no record for this interval and sensor
                     if len(y[sg_id]) < iter_num:
+                        # For this interval, this sensor is the first
+                        # one encountered for its sensor group.  Hence
+                        # we must initialize the data point
                         y[sg_id].append([x, None])
                     else:
+                        # The data point for this sensor group in this
+                        # time interval has not been created by a
+                        # previous sensor in the group
                         y[sg_id][-1][1] = None
             per += datetime.timedelta(0, 10, 0)
             iter_num += 1
