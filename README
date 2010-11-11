@@ -26,7 +26,7 @@ The system presently consists of two basic parts:
     web server's presumed document root).  This presents a graph of
     real-time power usage and a table of summary averages.  It runs on 
     web.py due to its minimal requirements of the web interface.  The
-    graph is generated in JavaScript using jQuery and jqPlot (included).  
+    graph is generated in JavaScript using jQuery and flot (included).  
     While this places a considerable load on the client, that load is
     preferable to the near-debilitating load the server originally bore
     in creating a PNG every 10 seconds.  (That said, one of the next
