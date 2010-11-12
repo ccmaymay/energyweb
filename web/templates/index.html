@@ -3,7 +3,7 @@ $def with (sensor_structure)
 <html>
 <head>
 
-<title>Energy Usage at Mudd (kW)</title>
+<title>Energy Usage at Mudd</title>
 
 <link rel="stylesheet" href="static/index.css" type="text/css" media="screen" />
 <!--[if IE]><script language="javascript" type="text/javascript" src="static/flot/excanvas.min.js"></script><![endif]-->
@@ -14,8 +14,8 @@ $def with (sensor_structure)
 </head>
 <body>
 
-<h2 class="center">Energy Usage at Mudd (kW)</h2>
-<div id="graph" style="height:600px;"></div>
+<h2 class="center">Energy Usage at Mudd</h2>
+<div id="graph" style="height:600px; width: 1200px;"></div>
 
 <div id="graph-legend"></div>
 
@@ -42,7 +42,7 @@ $def with (sensor_structure)
                         <th>$(ss[1])</th>
         </tr>
         <tr id="trweek">
-            <th rowspan="2" class="leftth">Average since Monday</th>
+            <th rowspan="2" class="leftth">Average since Monday (kW)</th>
             $for sgs in sensor_structure:
                 $if len(sgs[2]) > 1:
                     <td colspan="$(len(sgs[2]))" id="WeeklySG$(sgs[0])"></td>
@@ -56,7 +56,7 @@ $def with (sensor_structure)
                         <td id="WeeklyS$(ss[0])"></td>
         </tr>
         <tr id="trmonth">
-            <th rowspan="2" class="leftth">Average this month</th>
+            <th rowspan="2" class="leftth">Average this month (kW)</th>
             $for sgs in sensor_structure:
                 $if len(sgs[2]) > 1:
                     <td colspan="$(len(sgs[2]))" id="MonthlySG$(sgs[0])"></td>

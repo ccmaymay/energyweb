@@ -9,6 +9,11 @@ $(function () {
     var prev_sensor_groups = null;
     var prev_sensor_structure = null;
 
+    function kw_tickformatter(val, axis) {
+        // Workaround to get units on the y axis
+        return val + " kW";
+    }
+    
     function array_index_of(ar, x) {
         // (IE doesn't have Array.indexOf)
         for (var i=0; i < ar.length; i++) {
@@ -132,7 +137,8 @@ $(function () {
                 noColumns: sensor_structure.length
             },
             yaxis: {
-                min: 0
+                min: 0,
+                tickFormatter: kw_tickformatter,
             },
             xaxis: {
                 mode: 'time',
