@@ -15,7 +15,7 @@ sys.path.append('/var/local/energy/lib')
 import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from random import random, randint
-from energyconfig2 import *
+from energyconfig import *
 
 
 NUM_INSERTS = 10**3 # per sensor
