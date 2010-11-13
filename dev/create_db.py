@@ -219,6 +219,11 @@ def main():
     cur.execute('''CREATE INDEX power_averages_last_index 
                    ON power_averages (rdngtime_last);''')
 
+    cur.execute('''CREATE INDEX sensor_readings_rdngtime_per_index 
+                   ON sensor_readings ((date_trunc('minute'::text, rdngtime)
+                     + (FLOOR((date_part('second'::text, rdngtime) 
+                     / 10::double precision)) * '00:00:10'::interval)));''')
+
     cur.execute('''ANALYZE;''')
 
 

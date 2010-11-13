@@ -170,11 +170,11 @@ class index_data(object):
                          FROM sensor_readings
                          INNER JOIN sensors 
                            ON sensor_readings.sensor_id = sensors.id
-                         WHERE now() - rdngtime <= interval '3 hours')
+                         WHERE rdngtime >= now() - interval '3 hours')
                          AS rdngtime_per_subq '''
                     # If data was supplied, only take a subset of the 
                     # rows
-                    + (data and 'WHERE %s <= rdngtime_per' or '') + '''
+                    + (data and 'WHERE rdngtime_per >= %s' or '') + '''
                        GROUP BY rdngtime_per, sgid, sid
                        ORDER BY rdngtime_per ASC, sgid ASC, sid ASC;''']
 
