@@ -19,17 +19,11 @@ every 10 seconds.
 The system presently consists of two basic parts:
  1. The energy monitor in bin/energymon.  This is a daemon that expects
     the id number of a sensor (on the command line) and loops on that
-    sensor, collecting data and storing it in an SQL database.  (It also
-    pre-computes some summary averages since it has 10 seconds to kill 
-    whereas the web interface has been a bottleneck historically.)
+    sensor, collecting data and storing it in an SQL database.
  2. The web interface in web/ (with supporting files in www/, the
     web server's presumed document root).  This presents a graph of
     real-time power usage and a table of summary averages.  It runs on 
     web.py due to its minimal requirements of the web interface.  The
     graph is generated in JavaScript using jQuery and flot (included).  
-    While this places a considerable load on the client, that load is
-    preferable to the near-debilitating load the server originally bore
-    in creating a PNG every 10 seconds.  (That said, one of the next
-    steps for the project is to optimize this part.)
 
 Published under the MIT License.
