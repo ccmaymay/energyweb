@@ -167,10 +167,6 @@ def main():
     cur.execute('''CREATE INDEX sensor_readings_index 
                    ON sensor_readings (rdngtime);''')
     for sensor_id in sensors.keys():
-        cur.execute('''CREATE INDEX sensor_readings_%d_index 
-                       ON sensor_readings (sensor_id) 
-                       WHERE sensor_id = %%s;''' % sensor_id, 
-                    (sensor_id,))
         # Populate the database so we can have something to develop with
         for i in range(NUM_INSERTS):
             v = [int(10000 + 2000 * random()**2) for j in range(18)]

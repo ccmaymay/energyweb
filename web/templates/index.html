@@ -1,4 +1,4 @@
-$def with (sensor_structure)
+$def with (sensor_groups)
 <!DOCTYPE HTML>
 <html>
 <head>
@@ -14,60 +14,57 @@ $def with (sensor_structure)
 </head>
 <body>
 
-<h2 class="center">Energy Usage at Mudd</h2>
-<div id="graph" style="height:600px; width: 1200px;"></div>
-
-<div id="graph-legend"></div>
+<div id="graph"></div>
 
 <table class="center" id="energystats">
     <colgroup id="colgroupstats">
     <col id="leftthcol" />
-    $for sgs in sensor_structure:
-        $for ss in sgs[2]:
-            <col class="col$(len(sgs[2]))" />
+    $for sg in sensor_groups:
+        $for s in sg[3]:
+            <col class="col$(len(sg[3]))" />
     </colgroup>
     <tbody>
         <tr id="trhead">
             <th rowspan="2" class="leftth"></th>
-            $for sgs in sensor_structure:
-                $if len(sgs[2]) > 1:
-                    <th colspan="$(len(sgs[2]))">$(sgs[1])</th>
+            $for sg in sensor_groups:
+                $if len(sg[3]) > 1:
+                    <th colspan="$(len(sg[3]))">$(sg[1])</th>
                 $else:
-                    <th rowspan="2">$(sgs[1])</th>
+                    <th rowspan="2">$(sg[1])</th>
         </tr>
         <tr id="trheadsub">
-            $for sgs in sensor_structure:
-                $if len(sgs[2]) > 1:
-                    $for ss in sgs[2]:
-                        <th>$(ss[1])</th>
+            $for sg in sensor_groups:
+                $if len(sg[3]) > 1:
+                    $for s in sg[3]:
+                        <th>$(s[1])</th>
         </tr>
         <tr id="trweek">
             <th rowspan="2" class="leftth">Average since Monday (kW)</th>
-            $for sgs in sensor_structure:
-                $if len(sgs[2]) > 1:
-                    <td colspan="$(len(sgs[2]))" id="WeeklySG$(sgs[0])"></td>
+            $for sg in sensor_groups:
+                $if len(sg[3]) > 1:
+                    <td colspan="$(len(sg[3]))" id="WeeklySG$(sg[0])"></td>
                 $else:
-                    <td rowspan="2" id="WeeklySG$(sgs[0])"></td>
+                    <td rowspan="2" id="WeeklySG$(sg[0])"></td>
         </tr>
         <tr id="trweeksub">
-            $for sgs in sensor_structure:
-                $if len(sgs[2]) > 1:
-                    $for ss in sgs[2]:
-                        <td id="WeeklyS$(ss[0])"></td>
+            $for sg in sensor_groups:
+                $if len(sg[3]) > 1:
+                    $for s in sg[3]:
+                        <td id="WeeklyS$(s[0])"></td>
         </tr>
         <tr id="trmonth">
             <th rowspan="2" class="leftth">Average this month (kW)</th>
-            $for sgs in sensor_structure:
-                $if len(sgs[2]) > 1:
-                    <td colspan="$(len(sgs[2]))" id="MonthlySG$(sgs[0])"></td>
+            $for sg in sensor_groups:
+                $if len(sg[3]) > 1:
+                    <td colspan="$(len(sg[3]))" id="MonthlySG$(sg[0])"></td>
                 $else:
-                    <td rowspan="2" id="MonthlySG$(sgs[0])"></td>
+                    <td rowspan="2" id="MonthlySG$(sg[0])"></td>
         </tr>
         <tr id="trmonthsub">
-            $for sgs in sensor_structure:
-                $if len(sgs[2]) > 1:
-                    $for ss in sgs[2]:
-                        <td id="MonthlyS$(ss[0])"></td>
+            $for sg in sensor_groups:
+                $if len(sg[3]) > 1:
+                    $for s in sg[3]:
+                        <td id="MonthlyS$(s[0])"></td>
         </tr>
     </tbody>
 </table>
@@ -78,4 +75,3 @@ $def with (sensor_structure)
 
 </body>
 </html>
-

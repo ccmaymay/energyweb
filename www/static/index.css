@@ -1,3 +1,19 @@
+img.loading
+{
+    padding-top: 200px;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+}
+
+div#graph
+{
+    margin-left: auto;
+    margin-right: auto;
+    height: 500px;
+    width: 985px;
+}
+
 div#graph *
 {
     font-size: 16px;
@@ -30,19 +46,19 @@ table#energystats
 
 #energystats #colgroupstats col.col1
 {
-    width: 80px;
+    width: 65px;
     border: 1px solid #d0d0d0;
 }
 
 #energystats #colgroupstats col.col2
 {
-    width: 80px;
+    width: 65px;
     border: 1px solid #d0d0d0;
 }
 
 #energystats #colgroupstats col.col3
 {
-    width: 80px;
+    width: 65px;
     border: 1px solid #d0d0d0;
 }
 
@@ -88,7 +104,7 @@ table#energystats
 {
     border-right: 2px solid #bbbbbb;
     border-left: 2px solid #bbbbbb;
-    width: 230px;
+    width: 130px;
 }
 
 #energystats tbody tr th.leftth
