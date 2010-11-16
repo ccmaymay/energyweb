@@ -191,7 +191,8 @@ def main():
                      sensor_id integer REFERENCES sensors (id), 
                      avg_type integer not null, 
                      num_pts integer, 
-                     watts double precision);''')
+                     watts double precision,
+                     UNIQUE(sensor_id, avg_type, rdngtime_first));''')
 
     # Take the random data from sensor_readings and insert the appropriate
     # averages into power_averages.  (These figures would normally be
