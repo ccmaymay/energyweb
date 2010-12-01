@@ -81,7 +81,7 @@ def main():
     cur.execute('''INSERT INTO sensors (name, ip, sensor_group_id, 
                      three_phase, factor) 
                    VALUES ('1', '172.31.10.71', %s, 
-                     'true', 4.2 / 10.0);''', 
+                     'true', 4.2);''', 
                 (sensor_groups['East'],))
     cur.execute('''INSERT INTO sensors (name, ip, sensor_group_id, 
                      three_phase, factor) 
@@ -224,6 +224,21 @@ def main():
                    ON sensor_readings ((date_trunc('minute'::text, rdngtime)
                      + (FLOOR((date_part('second'::text, rdngtime) 
                      / 10::double precision)) * '00:00:10'::interval)));''')
+
+    # A view for convenience
+    cur.execute('''CREATE VIEW sensors_with_groups 
+                   AS SELECT sensor_groups.id AS sensor_group_id, 
+                     sensors.id AS sensor_id, 
+                     sensor_groups.name AS sensor_group_name, 
+                     sensors.name AS sensor_name, 
+                     sensor_groups.color AS sensor_group_color, 
+                     sensors.ip AS sensor_ip, 
+                     sensors.factor AS sensor_factor, 
+                     sensors.three_phase AS sensor_three_phase
+                   FROM sensors
+                   LEFT JOIN sensor_groups 
+                     ON sensors.sensor_group_id = sensor_groups.id
+                   ORDER BY sensor_groups.id, sensors.id;''')
 
     cur.execute('''ANALYZE;''')
 
