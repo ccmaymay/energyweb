@@ -1,6 +1,13 @@
 #!/usr/bin/env python
 
 
+'''
+Prints a Rhizome device "profile" (used in energyfaker to imitate a
+Rhizome device for testing purposes) by copying existing data from the
+database.
+'''
+
+
 import sys
 sys.path.append('/var/local/energy/lib')
 import psycopg2, datetime
@@ -8,11 +15,18 @@ from binascii import hexlify
 from energyconfig import *
 
 
+# The start and end of the time period to be copied.
 RDNGTIME_START = datetime.datetime(2010, 11, 1, 0, 0, 0)
 RDNGTIME_END = datetime.datetime(2010, 11, 2, 0, 0, 0)
 
 
 def main():
+    '''
+    Read from the database and print the profile.  (The actual data
+    sent by a device is not printable; we represent the profile in hex 
+    and expect that it will be decoded before it is used.)
+    '''
+
     conn = psycopg2.connect(PSQL_CONNSTR)
     cur = conn.cursor()
 
@@ -24,6 +38,7 @@ def main():
     print '#!/usr/bin/env python'
     print '\n'
     print 'TESTING_SOCKET_PROFILES = {'
+
     for (s_id, factor) in sensor_data:
         print '    %d: (' % s_id
         cur.execute('''SELECT rdngtime, rindex, 
@@ -86,7 +101,7 @@ def main():
                                       + chr(cvrms & 255))
             data += chr(freq >> 4) + chr((freq << 4) & 255)
             data += chr(tempc)
-            data += chr(0) # TODO
+            data += chr(0) # TODO (what is this?)
 
             print '        \'%s\',' % hexlify(data)
         print '    ),'

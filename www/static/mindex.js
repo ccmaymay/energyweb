@@ -1,3 +1,5 @@
+// TODO: Much of this is irrelevant.  (It is left as is only because the
+//       "mindex" endeavor is a quick proof-of-concept only.)
 $(function () {
     // This function is a callback, called when the DOM is loaded
 

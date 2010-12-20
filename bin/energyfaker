@@ -1,6 +1,18 @@
 #!/usr/bin/env python
 
 
+'''
+Serve data on a TCP port (using the assumption that the machine can
+listen on the specified address and port), imitating a Rhizome Systems 
+energy monitoring device.  The imitation is accomplished by reading from
+a "profile," i.e., a list of sample readings.  Called with two
+arguments:  The sensor ID (as represented in the PostgreSQL DB)
+and a command (start, stop, restart).  (The TCP port used will be that
+specified in the database for the given sensor.)  Daemonize on 
+initialization.
+'''
+
+
 import sys
 sys.path.append('/var/local/energy/lib')
 import socket, psycopg2, datetime, atexit, signal, time
@@ -14,14 +26,26 @@ from energyconfig import *
 
 
 class FakeRhizomeHandler(BaseRequestHandler):
+    '''
+    Subclass of the SocketServer BaseRequestHandler that imitates a
+    Rhizome device, as given by FakeRhizomeHandler.profile (assumed 
+    to be set before connections are received).
+    '''
+
     def handle(self):
+        '''
+        Imitate a Rhizome device by sending the data specified in
+        self.profile.
+        '''
         info('%s:%d connected.' % self.client_address)
 
         reading_num = 0
         reading = self.profile[reading_num]
 
+        # Loop forever, sending every 10 seconds (roughly)
         while True:
             chars_sent = 0
+            # Loop until a full reading (45 bytes) has been sent.
             while chars_sent < 45:
                 chars_to_send = randint(1, 45 - chars_sent)
                 r = reading[chars_sent:(chars_sent + chars_to_send)]
@@ -44,10 +68,10 @@ class FakeRhizomeHandler(BaseRequestHandler):
 class FakeRhizomeDaemon(Daemon):
     '''
     Subclass of a daemonizing class.  When initialized, wait for
-    messages from a certain energy monitoring device, as described
-    above.  (The particular device is given by the sensor_id argument
-    to run() and is assumed to be represented in the database.) Insert
-    data when it's received, and then wait for another message.
+    a connection on the TCP port specified in the database for the
+    given energy monitoring device.  (The particular device is given 
+    by the sensor_id argument to run().)  Send imitation data when a
+    connection is received.
     '''
 
     def cleanup(self):
@@ -76,7 +100,7 @@ class FakeRhizomeDaemon(Daemon):
 
     def run(self, sensor_id):
         '''
-        Perform the main listen and insert loop of the program.
+        Perform the main listen and send loop of the program.
         (See file and class docstrings.)
         '''
         basicConfig(filename=(FAKER_LOG_FILE_TEMPL % sensor_id),
@@ -91,7 +115,7 @@ class FakeRhizomeDaemon(Daemon):
         signal.signal(signal.SIGQUIT, self.handle_signal)
 
         # Connect to the PostgreSQL db, then query to collect basic 
-        # information about the sensor to be monitored.
+        # information about the sensor to be imitated.
         try:
             self.conn = psycopg2.connect(PSQL_CONNSTR)
             cur = self.conn.cursor()
@@ -114,6 +138,8 @@ class FakeRhizomeDaemon(Daemon):
         else:
             desc = '%s %s' % (group_name, name)
     
+        # TODO: is there a better way to give the profile to the 
+        # handler?
         FakeRhizomeHandler.profile = [unhexlify(s) for s in 
                                       FAKE_RHIZOME_PROFILES[sensor_id]]
         self.s = TCPServer((ip, port), FakeRhizomeHandler)
@@ -145,168 +171,3 @@ if __name__ == '__main__':
     else:
         print FAKER_USAGE_TEMPL % sys.argv[0]
         sys.exit(1)
-
-
-################################################################
-
-
-        cur.execute('''SELECT sensors.name, sensors.ip, sensors.port,
-                         sensors.three_phase, sensors.factor, 
-                         sensors.sensor_group_id, sensor_groups.name 
-                       FROM sensors 
-                       INNER JOIN sensor_groups 
-                         ON sensors.sensor_group_id = sensor_groups.id 
-                       WHERE sensors.id = %s;''', (sensor_id,))
-        r = cur.fetchone()
-        (name, ip, port, three_phase, factor, sg_id, sg_name) = r
-        # If the sensor is three-phase, we want to add all three power
-        # measurements to obtain the aggregate.  If the sensor is single
-        # phase, only the first two measurements are meaningful---so 
-        # we'll zero the third.
-        phase_factor = (three_phase and 1 or 0)
-    
-        self.open_socket(ip, port)
-    
-        while True:
-            data = ''
-            debug('Listening for data.')
-            # Loop until all 45 bytes of the message are collected.
-            while len(data) < 45:
-                data_recvd = self.s.recv(1024)
-                if data_recvd == '':
-                    error('Socket died.  Printing data, closing, reopening.')
-                    error(hexlify(data) + '.')
-                    self.s.close()
-                    self.open_socket(ip, port)
-                    data = ''
-                else:
-                    data += data_recvd
-            debug('Data received.  (45 bytes)')
-            if data[0:4] != 'RTSD': # 52 54 53 44 in hex
-                error('Bad data.  Printing data, closing socket, reopening.')
-                error(hexlify(data) + '.')
-                self.s.close()
-                self.open_socket(ip, port)
-            else:
-                # If the rudimentary validation succeeded, proceed to
-                # interpret the data for processing and storage.
-                debug('Data validated.')
-                rindex = ord(data[4])
-                # Lots of little uints
-                awatthr = factor * ((ord(data[5]) << 8) | ord(data[6]))
-                bwatthr = factor * ((ord(data[7]) << 8) | ord(data[8]))
-                cwatthr = factor * ((ord(data[9]) << 8) | ord(data[10]))
-                avarhr = factor * ((ord(data[11]) << 8) | ord(data[12]))
-                bvarhr = factor * ((ord(data[13]) << 8) | ord(data[14]))
-                cvarhr = factor * ((ord(data[15]) << 8) | ord(data[16]))
-                avahr = factor * ((ord(data[17]) << 8) | ord(data[18]))
-                bvahr = factor * ((ord(data[19]) << 8) | ord(data[20]))
-                cvahr = factor * ((ord(data[21]) << 8) | ord(data[22]))
-                airms = factor * ((ord(data[23]) << 16) | (ord(data[24]) << 8) 
-                                                        | ord(data[25]))
-                birms = factor * ((ord(data[26]) << 16) | (ord(data[27]) << 8) 
-                                                        | ord(data[28]))
-                cirms = factor * ((ord(data[29]) << 16) | (ord(data[30]) << 8) 
-                                                        | ord(data[31]))
-                avrms = ((ord(data[32]) << 16) | (ord(data[33]) << 8) 
-                                               | ord(data[34]))
-                bvrms = ((ord(data[35]) << 16) | (ord(data[36]) << 8) 
-                                               | ord(data[37]))
-                cvrms = ((ord(data[38]) << 16) | (ord(data[39]) << 8) 
-                                               | ord(data[40]))
-                freq = ((ord(data[41]) << 8) | ord(data[42])) >> 4
-                # for tempc:  at Amb = 25C, register = DF = Offset
-                tempc = 25 + (ord(data[43]) - int('df', 16)) * 3
-    
-                # Note: now() does not advance within a transaction, so
-                # the rdngtimes in the queries below will be consistent.
-
-                # Insert all data into the main db table.  Ask for the
-                # timestamp, and that truncated to weeks/months, to ease
-                # processing in the next steps.
-                cur.execute('''INSERT INTO sensor_readings (rdngtime, 
-                                 sensor_id, rindex, awatthr, bwatthr, cwatthr, 
-                                 avarhr, bvarhr, cvarhr, avahr, bvahr, cvahr, 
-                                 airms, birms, cirms, avrms, bvrms, cvrms, 
-                                 freq, tempc)
-                               VALUES (now(), %s, %s, %s, %s, %s, %s, %s, %s, 
-                                 %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                               RETURNING CAST (now() AS 
-                                 timestamp without time zone) AS rtnow,
-                                 CAST (date_trunc('week', now()) AS 
-                                 timestamp without time zone) AS rtnow_to_week,
-                                 CAST (date_trunc('month', now()) AS 
-                                 timestamp without time zone) AS rtnow_to_month,
-                                 CAST (date_trunc('minute', now()) AS 
-                                 timestamp without time zone) 
-                                   AS rtnow_to_minute,
-                                 CAST (date_trunc('hour', now()) AS 
-                                 timestamp without time zone) AS rtnow_to_hour
-                                 ;''',
-                            (sensor_id, rindex, awatthr, bwatthr, 
-                             cwatthr * phase_factor, avarhr, bvarhr, cvarhr, 
-                             avahr, bvahr, cvahr, airms, birms, cirms, avrms, 
-                             bvrms, cvrms, freq, tempc))
-
-                r = cur.fetchone()
-                rdngtime = r[0]
-                rdngtime_to_week = r[1]
-                rdngtime_to_month = r[2]
-                rdngtime_to_minute = r[3]
-                rdngtime_to_hour = r[4]
-                watts = awatthr + bwatthr + cwatthr * phase_factor
-
-                # There are two average types we want to compute---one 
-                # representing an average for the current week, and one 
-                # representing an average for the current month.  (Hence 
-                # the truncated timestamps.)  The loop below is just a 
-                # shortcut to keep from duplicating the following lines.
-
-                # We are computing these here because we can afford to; we
-                # have 10 seconds until the next message.  On the other hand,
-                # dozens of aggregations over thousands of rows each for a
-                # single web request doesn't seem to please the machines.
-                for (avg_type,
-                     avg_type_name, rdngtime_to) in ((AVG_TYPE_WEEK, 'week',
-                                                      rdngtime_to_week),
-                                                     (AVG_TYPE_MONTH, 'month',
-                                                      rdngtime_to_month)):
-                    # Retrieve the previous average computed for this sensor
-                    cur.execute('''SELECT rdngtime_first, 
-                                     date_trunc('%s', rdngtime_first), 
-                                     num_pts, watts 
-                                   FROM power_averages 
-                                   WHERE sensor_id = %%s AND avg_type = %%s 
-                                   ORDER BY rdngtime_first DESC
-                                   LIMIT 1;''' % avg_type_name, 
-                                (sensor_id, avg_type))
-    
-                    r = cur.fetchone()
-    
-                    # If we're still in the week/month of the previous average,
-                    # augment it with the data point we just collected.
-                    # Otherwise, insert a new average for this new time period.
-                    if r is not None and rdngtime_to == r[1]:
-                        [rdngtime_first, rdngtime_first_to, 
-                         num_pts, prev_watts] = r
-                        cur.execute('''UPDATE power_averages 
-                                       SET rdngtime_last = %s, num_pts = %s, 
-                                         watts = %s 
-                                       WHERE sensor_id = %s AND avg_type = %s
-                                         AND rdngtime_first = %s''',
-                                    (rdngtime, num_pts + 1, 
-                                     (prev_watts*num_pts + watts)/(num_pts+1),
-                                     sensor_id, avg_type, rdngtime_first))
-                    else:
-                        cur.execute('''INSERT INTO power_averages 
-                                         (rdngtime_first, rdngtime_last, 
-                                         sensor_id, avg_type, num_pts, watts)
-                                       VALUES (%s, %s, %s, %s, 1, %s);''',
-                                    (rdngtime, rdngtime, sensor_id, avg_type,
-                                     watts))
-                self.conn.commit()
-                debug('Data processed.')
-    
-        self.cleanup()
-        info('Past main loop.  Exiting.')
-        sys.exit(0)

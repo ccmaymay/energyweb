@@ -253,6 +253,12 @@ class index_data(object):
                                      'week_averages': week_averages, 
                                      'month_averages': month_averages})
 
+
+# The below classes (mindex and mindex_data) are sloppily copied from
+# index and index_data, respectively, for the sake of a quick 
+# demonstration.
+
+
 class mindex(object):
     '''
     This is the main view.  A javascript-generated graph of current
