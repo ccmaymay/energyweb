@@ -5,7 +5,9 @@ it will hopefully be found useful (and there are plans to use these
 ideas as a starting point for a general-purpose utility monitoring
 system).
 
-External Requirements: recent Python (not 3.x), PostgreSQL, psycopg2
+External Requirements: recent Python (not 3.x), 
+                       PostgreSQL (tested on 8.4), psycopg2,
+                       webpy (tested on 0.34)
 
 Power monitoring devices developed by Joseph King in the Engineering
 Department are installed around campus.  These are cheap to make, thus

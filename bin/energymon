@@ -55,15 +55,15 @@ class EnergyMonDaemon(Daemon):
         # cleanup() will be called since it is registered with atexit
         sys.exit(0)
 
-    def open_socket(self, ip):
+    def open_socket(self, ip, port):
         '''
         Open a socket to the device, looping until success.
         '''
         while True:
             try:
                 self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                self.s.connect((ip, SENSOR_TCP_PORT))
-                info('Socket connected to %s:%d.' % (ip, SENSOR_TCP_PORT))
+                self.s.connect((ip, port))
+                info('Socket connected to %s:%d.' % (ip, port))
                 break
             except socket.error, detail:
                 error(str(detail))
@@ -98,22 +98,22 @@ class EnergyMonDaemon(Daemon):
             error('Could not connect to SQL database.  Shutting down.')
             sys.exit(1)
 
-        cur.execute('''SELECT sensors.name, sensors.ip, sensors.three_phase, 
-                         sensors.factor, sensors.sensor_group_id, 
-                         sensor_groups.name 
+        cur.execute('''SELECT sensors.name, sensors.ip, sensors.port,
+                         sensors.three_phase, sensors.factor, 
+                         sensors.sensor_group_id, sensor_groups.name 
                        FROM sensors 
                        INNER JOIN sensor_groups 
                          ON sensors.sensor_group_id = sensor_groups.id 
                        WHERE sensors.id = %s;''', (sensor_id,))
         r = cur.fetchone()
-        (name, ip, three_phase, factor, sg_id, sg_name) = r
+        (name, ip, port, three_phase, factor, sg_id, sg_name) = r
         # If the sensor is three-phase, we want to add all three power
         # measurements to obtain the aggregate.  If the sensor is single
         # phase, only the first two measurements are meaningful---so 
         # we'll zero the third.
         phase_factor = (three_phase and 1 or 0)
     
-        self.open_socket(ip)
+        self.open_socket(ip, port)
     
         while True:
             data = ''
@@ -125,7 +125,7 @@ class EnergyMonDaemon(Daemon):
                     error('Socket died.  Printing data, closing, reopening.')
                     error(hexlify(data) + '.')
                     self.s.close()
-                    self.open_socket(ip)
+                    self.open_socket(ip, port)
                     data = ''
                 else:
                     data += data_recvd
@@ -134,7 +134,7 @@ class EnergyMonDaemon(Daemon):
                 error('Bad data.  Printing data, closing socket, reopening.')
                 error(hexlify(data) + '.')
                 self.s.close()
-                self.open_socket(ip)
+                self.open_socket(ip, port)
             else:
                 # If the rudimentary validation succeeded, proceed to
                 # interpret the data for processing and storage.
@@ -184,7 +184,12 @@ class EnergyMonDaemon(Daemon):
                                  CAST (date_trunc('week', now()) AS 
                                  timestamp without time zone) AS rtnow_to_week,
                                  CAST (date_trunc('month', now()) AS 
-                                 timestamp without time zone) AS rtnow_to_month
+                                 timestamp without time zone) AS rtnow_to_month,
+                                 CAST (date_trunc('minute', now()) AS 
+                                 timestamp without time zone) 
+                                   AS rtnow_to_minute,
+                                 CAST (date_trunc('hour', now()) AS 
+                                 timestamp without time zone) AS rtnow_to_hour
                                  ;''',
                             (sensor_id, rindex, awatthr, bwatthr, 
                              cwatthr * phase_factor, avarhr, bvarhr, cvarhr, 
@@ -195,6 +200,8 @@ class EnergyMonDaemon(Daemon):
                 rdngtime = r[0]
                 rdngtime_to_week = r[1]
                 rdngtime_to_month = r[2]
+                rdngtime_to_minute = r[3]
+                rdngtime_to_hour = r[4]
                 watts = awatthr + bwatthr + cwatthr * phase_factor
 
                 # There are two average types we want to compute---one 
@@ -222,13 +229,14 @@ class EnergyMonDaemon(Daemon):
                                    LIMIT 1;''' % avg_type_name, 
                                 (sensor_id, avg_type))
     
-                    [rdngtime_first, rdngtime_first_to, 
-                     num_pts, prev_watts] = cur.fetchone()
+                    r = cur.fetchone()
     
                     # If we're still in the week/month of the previous average,
                     # augment it with the data point we just collected.
                     # Otherwise, insert a new average for this new time period.
-                    if rdngtime_to == rdngtime_first_to:
+                    if r is not None and rdngtime_to == r[1]:
+                        [rdngtime_first, rdngtime_first_to, 
+                         num_pts, prev_watts] = r
                         cur.execute('''UPDATE power_averages 
                                        SET rdngtime_last = %s, num_pts = %s, 
                                          watts = %s 
@@ -254,7 +262,12 @@ class EnergyMonDaemon(Daemon):
 
 if __name__ == '__main__':
     if len(sys.argv) == 3:
-        sensor_id = int(sys.argv[1])
+        try:
+            sensor_id = int(sys.argv[1])
+        except ValueError:
+            print MON_USAGE_TEMPL % sys.argv[0]
+            sys.exit(1)
+
         daemon = EnergyMonDaemon(MON_PID_FILE_TEMPL % sensor_id, 
                                  args=(sensor_id,), 
                                  stdout=(MON_LOG_FILE_TEMPL % sensor_id),

@@ -38,6 +38,7 @@ def main():
                      (id serial primary key, 
                      name varchar(32) not null,
                      ip inet, 
+                     port integer, 
                      sensor_group_id integer REFERENCES sensor_groups (id), 
                      three_phase boolean, 
                      factor double precision,
@@ -69,69 +70,69 @@ def main():
 
     # Insert sensor information---the important part.
     cur.execute('''INSERT INTO sensors (name, ip, sensor_group_id, 
-                     three_phase, factor) 
+                     three_phase, factor, port) 
                    VALUES ('', '172.31.10.11', %s, 
-                     'true', 8);''', 
+                     'true', 8, 4001);''', 
                 (sensor_groups['Atwood'],))
     cur.execute('''INSERT INTO sensors (name, ip, sensor_group_id, 
-                     three_phase, factor) 
+                     three_phase, factor, port) 
                    VALUES ('', '172.31.10.31', %s, 
-                     'true', 24);''', 
+                     'true', 24, 4001);''', 
                 (sensor_groups['Case'],))
     cur.execute('''INSERT INTO sensors (name, ip, sensor_group_id, 
-                     three_phase, factor) 
+                     three_phase, factor, port) 
                    VALUES ('1', '172.31.10.71', %s, 
-                     'true', 4.2);''', 
+                     'true', 4.2, 4001);''', 
                 (sensor_groups['East'],))
     cur.execute('''INSERT INTO sensors (name, ip, sensor_group_id, 
-                     three_phase, factor) 
+                     three_phase, factor, port) 
                    VALUES ('2', '172.31.10.72', %s, 
-                     'false', 8);''', 
+                     'false', 8, 4001);''', 
                 (sensor_groups['East'],))
     cur.execute('''INSERT INTO sensors (name, ip, sensor_group_id, 
-                     three_phase, factor) 
+                     three_phase, factor, port) 
                    VALUES ('', '172.31.10.21', %s, 
-                     'true', 16);''', 
+                     'true', 16, 4001);''', 
                 (sensor_groups['Linde'],))
     cur.execute('''INSERT INTO sensors (name, ip, sensor_group_id, 
-                     three_phase, factor) 
+                     three_phase, factor, port) 
                    VALUES ('1', '172.31.10.61', %s, 
-                     'true', 4.2 / 10.0);''', 
+                     'true', 4.2 / 10.0, 4001);''', 
                 (sensor_groups['North'],))
     cur.execute('''INSERT INTO sensors (name, ip, sensor_group_id, 
-                     three_phase, factor) 
+                     three_phase, factor, port) 
                    VALUES ('2', '172.31.10.62', %s, 
-                     'false', 8);''', 
+                     'false', 8, 4001);''', 
                 (sensor_groups['North'],))
     cur.execute('''INSERT INTO sensors (name, ip, sensor_group_id, 
-                     three_phase, factor) 
+                     three_phase, factor, port) 
                    VALUES ('HVAC', '172.31.10.63', %s, 
-                     'true', 4);''', 
+                     'true', 4, 4001);''', 
                 (sensor_groups['North'],))
     cur.execute('''INSERT INTO sensors (name, ip, sensor_group_id, 
-                     three_phase, factor) 
+                     three_phase, factor, port) 
                    VALUES ('', '172.31.10.41', %s, 
-                     'true', 32);''', 
+                     'true', 32, 4001);''', 
                 (sensor_groups['Sontag'],))
     cur.execute('''INSERT INTO sensors (name, ip, sensor_group_id, 
-                     three_phase, factor) 
+                     three_phase, factor, port) 
                    VALUES ('', '172.31.10.51', %s, 
-                     'true', 12);''', 
+                     'true', 12, 4001);''', 
                 (sensor_groups['South'],))
     cur.execute('''INSERT INTO sensors (name, ip, sensor_group_id, 
-                     three_phase, factor) 
+                     three_phase, factor, port) 
                    VALUES ('1', '172.31.10.81', %s, 
-                     'true', 4.2 / 10.0);''', 
+                     'true', 4.2 / 10.0, 4001);''', 
                 (sensor_groups['West'],))
     cur.execute('''INSERT INTO sensors (name, ip, sensor_group_id, 
-                     three_phase, factor) 
+                     three_phase, factor, port) 
                    VALUES ('2', '172.31.10.82', %s, 
-                     'false', 8);''', 
+                     'false', 8, 4001);''', 
                 (sensor_groups['West'],))
     cur.execute('''INSERT INTO sensors (name, ip, sensor_group_id, 
-                     three_phase, factor) 
+                     three_phase, factor, port) 
                    VALUES ('HVAC', '172.31.10.73', %s, 
-                     'true', 6);''', 
+                     'true', 6, 4001);''', 
                 (sensor_groups['West'],))
 
     # For a note about three phase sensors, see the monitoring program
@@ -225,6 +226,10 @@ def main():
                      + (FLOOR((date_part('second'::text, rdngtime) 
                      / 10::double precision)) * '00:00:10'::interval)));''')
 
+    cur.execute('''CREATE INDEX sensor_readings_rdngtime_mper_index 
+                   ON sensor_readings (date_trunc('minute'::text, 
+                     rdngtime));''')
+
     # A view for convenience
     cur.execute('''CREATE VIEW sensors_with_groups 
                    AS SELECT sensor_groups.id AS sensor_group_id, 
@@ -233,6 +238,7 @@ def main():
                      sensors.name AS sensor_name, 
                      sensor_groups.color AS sensor_group_color, 
                      sensors.ip AS sensor_ip, 
+                     sensors.port AS sensor_port, 
                      sensors.factor AS sensor_factor, 
                      sensors.three_phase AS sensor_three_phase
                    FROM sensors
