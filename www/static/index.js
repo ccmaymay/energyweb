@@ -3,6 +3,7 @@ $(function () {
 
     var first_time = true;
     var last_record = null;
+    var desired_first_record = null;
     var sg_xy_pairs = {};
     var sensor_groups = null;
 
@@ -31,8 +32,7 @@ $(function () {
         // table).
     
         last_record = data.last_record;
-        // desired_first_record is 2:59:50 before last_record
-        desired_first_record = last_record - 1000*60*60*3 + 1000*10;
+        desired_first_record = data.desired_first_record;
 
         var series_opts = [];
         var series = [];

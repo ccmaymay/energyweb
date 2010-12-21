@@ -83,7 +83,8 @@ class FakeRhizomeDaemon(Daemon):
         if not self.conn.closed:
             self.conn.rollback()
             self.conn.close()
-        self.s.shutdown()
+        if hasattr(self, 's'):
+            self.s.shutdown()
 
     def handle_signal(self, signum, frame):
         '''

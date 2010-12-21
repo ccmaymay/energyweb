@@ -84,7 +84,8 @@ class EnergyMonDaemon(Daemon):
         if not self.conn.closed:
             self.conn.rollback()
             self.conn.close()
-        self.s.close()
+        if hasattr(self, 's'):
+            self.s.close()
 
     def handle_signal(self, signum, frame):
         '''

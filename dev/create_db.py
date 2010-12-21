@@ -188,10 +188,6 @@ def main():
                      + (FLOOR((date_part('second'::text, rdngtime) 
                      / 10::double precision)) * '00:00:10'::interval)));''')
 
-    cur.execute('''CREATE INDEX sensor_readings_rdngtime_mper_index 
-                   ON sensor_readings (date_trunc('minute'::text, 
-                     rdngtime));''')
-
     # A view for convenience
     cur.execute('''CREATE VIEW sensors_with_groups 
                    AS SELECT sensor_groups.id AS sensor_group_id, 

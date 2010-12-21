@@ -153,7 +153,7 @@ class index_data(object):
                            + sensor_readings.cwatthr AS watts, 
                            sensors.id AS sid, 
                            sensors.sensor_group_id AS sgid,
-                           date_trunc('minute', 
+                           date_trunc('minute',
                            sensor_readings.rdngtime)
                            + FLOOR(EXTRACT(SECOND FROM 
                            sensor_readings.rdngtime) / 10) 
@@ -225,6 +225,8 @@ class index_data(object):
             per += datetime.timedelta(0, 10, 0)
 
         last_record = x
+        # desired_first_record lags by (3:00:00 - 0:00:10) = 2:59:50
+        desired_first_record = x - 1000*60*60*3 + 1000*10
 
         # If the client has indicated that they have
         # data up to a certain point, we save bandwidth and client
@@ -232,12 +234,16 @@ class index_data(object):
         web.header('Content-Type', 'application/json')
         if data:
             return simplejson.dumps({'sg_xy_pairs': sg_xy_pairs,
+                                     'desired_first_record': 
+                                         desired_first_record, 
                                      'last_record': last_record, 
                                      'week_averages': week_averages, 
                                      'month_averages': month_averages})
         else:
             return simplejson.dumps({'sg_xy_pairs': sg_xy_pairs,
                                      'sensor_groups': sensor_groups,
+                                     'desired_first_record': 
+                                         desired_first_record, 
                                      'last_record': last_record, 
                                      'week_averages': week_averages, 
                                      'month_averages': month_averages})
