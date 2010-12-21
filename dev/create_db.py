@@ -18,10 +18,6 @@ from random import random, randint
 from energyconfig import *
 
 
-NUM_INSERTS = 10**3 # per sensor
-INSERT_INTERVAL = 10 # seconds
-
-
 def main():
     '''
     Build the database structure and populate with random rows.
@@ -167,59 +163,25 @@ def main():
                      tempc integer);''')
     cur.execute('''CREATE INDEX sensor_readings_index 
                    ON sensor_readings (rdngtime);''')
-    for sensor_id in sensors.keys():
-        # Populate the database so we can have something to develop with
-        for i in range(NUM_INSERTS):
-            v = [int(10000 + 2000 * random()**2) for j in range(18)]
-            v[3] *= phase_factor[sensor_id]
-            cur.execute('''INSERT INTO sensor_readings (rdngtime, sensor_id,
-                             rindex, awatthr, bwatthr, cwatthr, avarhr, bvarhr, 
-                             cvarhr, avahr, bvahr, cvahr, airms, birms, cirms, 
-                             avrms, bvrms, cvrms, freq, tempc) 
-                           VALUES (now() - interval '%d seconds', %%s, %%s, 
-                             %%s, %%s, %%s, %%s, %%s, %%s, %%s, %%s, %%s, %%s, 
-                             %%s, %%s, %%s, %%s, %%s, %%s, %%s);''' 
-                        % (INSERT_INTERVAL*i + randint(-1, 1)), 
-                        [sensor_id] + v)
 
     # This table will be for averages (per week, and per month) of power
     # readings.  Postgres doesn't seem to like to compute these for each
     # web request, whereas the 10 seconds in between messages from a
     # sensor offer plenty of thinking time.
     cur.execute('''CREATE TABLE power_averages 
-                     (rdngtime_first timestamp not null, 
-                     rdngtime_last timestamp not null, 
-                     sensor_id integer REFERENCES sensors (id), 
-                     avg_type integer not null, 
-                     num_pts integer, 
+                     (rdngtime_trunc timestamp not null,
+                     rdngtime_first timestamp not null,
+                     rdngtime_last timestamp not null,
+                     sensor_id integer REFERENCES sensors (id),
+                     avg_type character varying(16) not null,
+                     num_pts integer,
                      watts double precision,
-                     UNIQUE(sensor_id, avg_type, rdngtime_first));''')
+                     UNIQUE(sensor_id, avg_type, rdngtime_trunc));''')
 
-    # Take the random data from sensor_readings and insert the appropriate
-    # averages into power_averages.  (These figures would normally be
-    # computed and inserted immediately after an insert to sensor_readings.)
-    for sensor_id in sensors.keys():
-        cur.execute('''INSERT INTO power_averages (rdngtime_first, 
-                         rdngtime_last, sensor_id, avg_type, num_pts, watts) 
-                       SELECT MIN(rdngtime), MAX(rdngtime), %s, %s, COUNT(*), 
-                         AVG(awatthr + bwatthr + cwatthr) 
-                         FROM sensor_readings
-                         WHERE sensor_id = %s
-                         GROUP BY date_trunc('month', rdngtime);''',
-                    (sensor_id, AVG_TYPE_MONTH, sensor_id))
-        cur.execute('''INSERT INTO power_averages (rdngtime_first, 
-                         rdngtime_last, sensor_id, avg_type, num_pts, watts) 
-                       SELECT MIN(rdngtime), MAX(rdngtime), %s, %s, COUNT(*), 
-                         AVG(awatthr + bwatthr + cwatthr) 
-                         FROM sensor_readings
-                         WHERE sensor_id = %s
-                         GROUP BY date_trunc('week', rdngtime);''',
-                    (sensor_id, AVG_TYPE_WEEK, sensor_id))
-
-    cur.execute('''CREATE INDEX power_averages_first_index 
-                   ON power_averages (rdngtime_first);''')
-    cur.execute('''CREATE INDEX power_averages_last_index 
-                   ON power_averages (rdngtime_last);''')
+    cur.execute('''CREATE INDEX power_averages_rdngtime_trunc_index 
+                   ON power_averages (rdngtime_trunc);''')
+    cur.execute('''CREATE INDEX power_averages_avg_type_index 
+                   ON power_averages (avg_type);''')
 
     cur.execute('''CREATE INDEX sensor_readings_rdngtime_per_index 
                    ON sensor_readings ((date_trunc('minute'::text, rdngtime)
@@ -245,8 +207,6 @@ def main():
                    LEFT JOIN sensor_groups 
                      ON sensors.sensor_group_id = sensor_groups.id
                    ORDER BY sensor_groups.id, sensors.id;''')
-
-    cur.execute('''ANALYZE;''')
 
 
 if __name__ == '__main__':

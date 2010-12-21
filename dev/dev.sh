@@ -6,7 +6,22 @@
 # Expects the command (start, stop, restart) as an argument.
 
 
+USAGE_STR="usage: $0 <start|stop|restart>"
+
+
+if [ $# -ne 1 ] ; then
+    echo $USAGE_STR
+    exit 1
+elif [ "$1" != "start" ] && [ "$1" != "stop" ] && [ "$1" != "restart" ] ; then
+    echo $USAGE_STR
+    exit 1
+fi
+
 for i in {1..13} ; do
-    bin/energymon $i "$1"
-    bin/energyfaker $i "$1"
+    cmd="bin/energymon $i $1"
+    $cmd
+    echo $cmd
+    cmd="bin/energyfaker $i $1"
+    $cmd
+    echo $cmd
 done

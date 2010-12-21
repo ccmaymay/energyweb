@@ -10,10 +10,12 @@ from os.path import join as _join
 from logging import INFO as _INFO, DEBUG as _DEBUG
 
 
-# AVG_TYPE_* are constants for easy identification of average types 
-# e.g. in the SQL database.  Right now there are only two.
-AVG_TYPE_WEEK = 1
-AVG_TYPE_MONTH = 2
+# AVG_TYPES is a tuple of time periods over which readings will be
+# averaged (the averages being stored in power_averages).  The values
+# are strings, expected to correspond to the inputs to the PostgreSQL
+# function date_trunc.  See:
+# http://www.postgresql.org/docs/8.4/interactive/functions-datetime.html
+AVG_TYPES = ('month', 'week', 'day', 'hour', 'minute')
 
 MON_USAGE_TEMPL = 'usage: %s <sensor_id> start|stop|restart'
 

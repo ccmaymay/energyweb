@@ -4,6 +4,12 @@
 '''
 Migrate the database from the original setup (one table per dorm) to 
 the new one (sensor_readings, power_averages contain all data).
+
+NOTE:  The database has changed since this script was updated.
+
+In order to perform a full migration from the original Rhizome setup, 
+it would be best to start from scratch, using dev/create_db.py as a
+guide.
 '''
 
 

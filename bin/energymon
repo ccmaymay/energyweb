@@ -22,6 +22,50 @@ from energyconfig import *
 from logging import error, info, debug, basicConfig
 
 
+# The following are the queries used in this program.  They are here
+# in order to make the body of the program easier on the eyes and
+# slightly more efficient.
+SELECT_SENSORS = '''SELECT sensors.name, sensors.ip, sensors.port,
+                      sensors.three_phase, sensors.factor, 
+                      sensors.sensor_group_id, sensor_groups.name 
+                    FROM sensors 
+                    INNER JOIN sensor_groups 
+                      ON sensors.sensor_group_id = sensor_groups.id 
+                    WHERE sensors.id = %s;'''
+
+RDNGTIME_TRUNC_CASTS = (len(AVG_TYPES) * 
+    ', CAST (date_trunc(%s, now()) AS timestamp without time zone)')
+INSERT_SENSOR_READING = ('''INSERT INTO sensor_readings (rdngtime, 
+                              sensor_id, rindex, awatthr, bwatthr, cwatthr, 
+                              avarhr, bvarhr, cvarhr, avahr, bvahr, cvahr, 
+                              airms, birms, cirms, avrms, bvrms, cvrms, 
+                              freq, tempc)
+                            VALUES (now(), %s, %s, %s, %s, %s, %s, %s, %s, 
+                              %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                            RETURNING 
+                              CAST (now() AS timestamp without time zone)'''
+                         + RDNGTIME_TRUNC_CASTS
+                         + ';')
+
+SELECT_POWER_AVERAGE = '''SELECT rdngtime_trunc, num_pts, watts
+                            FROM power_averages 
+                            WHERE sensor_id = %s AND avg_type = %s
+                            ORDER BY rdngtime_first DESC
+                            LIMIT 1;'''
+
+UPDATE_POWER_AVERAGE = '''UPDATE power_averages 
+                            SET rdngtime_last = %s, num_pts = %s, 
+                              watts = %s 
+                            WHERE sensor_id = %s AND avg_type = %s
+                              AND rdngtime_trunc = %s'''
+
+INSERT_POWER_AVERAGE = '''INSERT INTO power_averages 
+                            (rdngtime_trunc,
+                            rdngtime_first, rdngtime_last,
+                            sensor_id, avg_type, num_pts, watts)
+                          VALUES (%s, %s, %s, %s, %s, 1, %s);'''
+
+
 class EnergyMonDaemon(Daemon):
     '''
     Subclass of a daemonizing class.  When initialized, wait for
@@ -98,13 +142,7 @@ class EnergyMonDaemon(Daemon):
             error('Could not connect to SQL database.  Shutting down.')
             sys.exit(1)
 
-        cur.execute('''SELECT sensors.name, sensors.ip, sensors.port,
-                         sensors.three_phase, sensors.factor, 
-                         sensors.sensor_group_id, sensor_groups.name 
-                       FROM sensors 
-                       INNER JOIN sensor_groups 
-                         ON sensors.sensor_group_id = sensor_groups.id 
-                       WHERE sensors.id = %s;''', (sensor_id,))
+        cur.execute(SELECT_SENSORS, (sensor_id,))
         r = cur.fetchone()
         (name, ip, port, three_phase, factor, sg_id, sg_name) = r
         # If the sensor is three-phase, we want to add all three power
@@ -169,89 +207,43 @@ class EnergyMonDaemon(Daemon):
                 # Note: now() does not advance within a transaction, so
                 # the rdngtimes in the queries below will be consistent.
 
-                # Insert all data into the main db table.  Ask for the
-                # timestamp, and that truncated to weeks/months, to ease
+                # Insert all data into the main DB table.  Ask for the
+                # timestamp, and several truncated timestamps (see the
+                # definition of INSERT_SENSOR_READING), to ease
                 # processing in the next steps.
-                cur.execute('''INSERT INTO sensor_readings (rdngtime, 
-                                 sensor_id, rindex, awatthr, bwatthr, cwatthr, 
-                                 avarhr, bvarhr, cvarhr, avahr, bvahr, cvahr, 
-                                 airms, birms, cirms, avrms, bvrms, cvrms, 
-                                 freq, tempc)
-                               VALUES (now(), %s, %s, %s, %s, %s, %s, %s, %s, 
-                                 %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                               RETURNING CAST (now() AS 
-                                 timestamp without time zone) AS rtnow,
-                                 CAST (date_trunc('week', now()) AS 
-                                 timestamp without time zone) AS rtnow_to_week,
-                                 CAST (date_trunc('month', now()) AS 
-                                 timestamp without time zone) AS rtnow_to_month,
-                                 CAST (date_trunc('minute', now()) AS 
-                                 timestamp without time zone) 
-                                   AS rtnow_to_minute,
-                                 CAST (date_trunc('hour', now()) AS 
-                                 timestamp without time zone) AS rtnow_to_hour
-                                 ;''',
+                cur.execute(INSERT_SENSOR_READING,
                             (sensor_id, rindex, awatthr, bwatthr, 
                              cwatthr * phase_factor, avarhr, bvarhr, cvarhr, 
                              avahr, bvahr, cvahr, airms, birms, cirms, avrms, 
-                             bvrms, cvrms, freq, tempc))
+                             bvrms, cvrms, freq, tempc) + AVG_TYPES)
 
                 r = cur.fetchone()
                 rdngtime = r[0]
-                rdngtime_to_week = r[1]
-                rdngtime_to_month = r[2]
-                rdngtime_to_minute = r[3]
-                rdngtime_to_hour = r[4]
+                rdngtime_truncs = r[1:]
                 watts = awatthr + bwatthr + cwatthr * phase_factor
 
-                # There are two average types we want to compute---one 
-                # representing an average for the current week, and one 
-                # representing an average for the current month.  (Hence 
-                # the truncated timestamps.)  The loop below is just a 
-                # shortcut to keep from duplicating the following lines.
-
-                # We are computing these here because we can afford to; we
-                # have 10 seconds until the next message.  On the other hand,
-                # dozens of aggregations over thousands of rows each for a
-                # single web request doesn't seem to please the machines.
-                for (avg_type,
-                     avg_type_name, rdngtime_to) in ((AVG_TYPE_WEEK, 'week',
-                                                      rdngtime_to_week),
-                                                     (AVG_TYPE_MONTH, 'month',
-                                                      rdngtime_to_month)):
+                # We precompute averages here because we can afford to:  We
+                # have 10 seconds until the next message.
+                for avg_type_num in range(len(AVG_TYPES)):
+                    avg_type = AVG_TYPES[avg_type_num]
+                    rdngtime_trunc = rdngtime_truncs[avg_type_num]
                     # Retrieve the previous average computed for this sensor
-                    cur.execute('''SELECT rdngtime_first, 
-                                     date_trunc('%s', rdngtime_first), 
-                                     num_pts, watts 
-                                   FROM power_averages 
-                                   WHERE sensor_id = %%s AND avg_type = %%s 
-                                   ORDER BY rdngtime_first DESC
-                                   LIMIT 1;''' % avg_type_name, 
-                                (sensor_id, avg_type))
-    
+                    cur.execute(SELECT_POWER_AVERAGE, (sensor_id, avg_type))
                     r = cur.fetchone()
     
-                    # If we're still in the week/month of the previous average,
+                    # If we're still in the period of the previous average,
                     # augment it with the data point we just collected.
                     # Otherwise, insert a new average for this new time period.
-                    if r is not None and rdngtime_to == r[1]:
-                        [rdngtime_first, rdngtime_first_to, 
-                         num_pts, prev_watts] = r
-                        cur.execute('''UPDATE power_averages 
-                                       SET rdngtime_last = %s, num_pts = %s, 
-                                         watts = %s 
-                                       WHERE sensor_id = %s AND avg_type = %s
-                                         AND rdngtime_first = %s''',
+                    if r is not None and rdngtime_trunc == r[0]:
+                        [num_pts, prev_watts] = r[1:]
+                        cur.execute(UPDATE_POWER_AVERAGE,
                                     (rdngtime, num_pts + 1, 
                                      (prev_watts*num_pts + watts)/(num_pts+1),
-                                     sensor_id, avg_type, rdngtime_first))
+                                     sensor_id, avg_type, rdngtime_trunc))
                     else:
-                        cur.execute('''INSERT INTO power_averages 
-                                         (rdngtime_first, rdngtime_last, 
-                                         sensor_id, avg_type, num_pts, watts)
-                                       VALUES (%s, %s, %s, %s, 1, %s);''',
-                                    (rdngtime, rdngtime, sensor_id, avg_type,
-                                     watts))
+                        cur.execute(INSERT_POWER_AVERAGE,
+                                    (rdngtime_trunc, rdngtime, rdngtime,
+                                     sensor_id, avg_type, watts))
                 self.conn.commit()
                 debug('Data processed.')
     

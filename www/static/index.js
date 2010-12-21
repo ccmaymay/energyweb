@@ -31,12 +31,15 @@ $(function () {
         // table).
     
         last_record = data.last_record;
+        // desired_first_record is 2:59:50 before last_record
+        desired_first_record = last_record - 1000*60*60*3 + 1000*10;
 
         var series_opts = [];
         var series = [];
         var missed_week_average, 
             missed_month_average, 
             sensor_id,
+            group_id,
             group_week_avg, 
             group_month_avg, 
             graph_opts;
@@ -55,10 +58,10 @@ $(function () {
             group_month_avg = 0;
             missed_week_average = false;
             missed_month_average = false;
+            group_id = sensor_groups[i][0];
     
             if (first_time) {
-                sg_xy_pairs[sensor_groups[i][0]] = data.sg_xy_pairs[
-                    sensor_groups[i][0]];
+                sg_xy_pairs[group_id] = data.sg_xy_pairs[group_id];
             } else {
                 /* We've already collected some data, so combine it 
                  * with the new.  About this slicing:  We're 
@@ -70,17 +73,23 @@ $(function () {
                  * incomplete, the second latest (and older) records are
                  * safe---they will never change.
                  */
-                sg_xy_pairs[sensor_groups[i][0]] = sg_xy_pairs[
-                    sensor_groups[i][0]].slice(
-                        data.sg_xy_pairs[sensor_groups[i][0]].length 
-                            - 1,
-                        sg_xy_pairs[sensor_groups[i][0]].length - 1
+                var j;
+                for (j=0; j < sg_xy_pairs[group_id].length; j++) {
+                    if (sg_xy_pairs[group_id][j][0] >= desired_first_record) {
+                        // We break out of the loop when j is the index
+                        // of the earliest record on or later than
+                        // desired_first_record
+                        break;
+                    }
+                }
+                sg_xy_pairs[group_id] = sg_xy_pairs[group_id].slice(j,
+                        sg_xy_pairs[group_id].length - 1
                     ).concat(
-                        data.sg_xy_pairs[sensor_groups[i][0]]);
+                        data.sg_xy_pairs[group_id]);
             }
             
             series.push({
-                data: sg_xy_pairs[sensor_groups[i][0]],
+                data: sg_xy_pairs[group_id],
                 label: sensor_groups[i][1],
                 color: '#' + sensor_groups[i][2]
             });
@@ -117,13 +126,13 @@ $(function () {
     
             // Now update table averages for this sensor group
             if (! missed_week_average) {
-                $('#WeeklySG' + sensor_groups[i][0]).empty();
-                $('#WeeklySG' + sensor_groups[i][0]).append(
+                $('#WeeklySG' + group_id).empty();
+                $('#WeeklySG' + group_id).append(
                     rnd(group_week_avg));
             }
             if (! missed_month_average) {
-                $('#MonthlySG' + sensor_groups[i][0]).empty();
-                $('#MonthlySG' + sensor_groups[i][0]).append(
+                $('#MonthlySG' + group_id).empty();
+                $('#MonthlySG' + group_id).append(
                     rnd(group_month_avg));
             }
         }
@@ -144,6 +153,7 @@ $(function () {
                 tickFormatter: kw_tickformatter,
             },
             xaxis: {
+                min: desired_first_record,
                 mode: 'time',
                 timeformat: '%h:%M %p',
                 twelveHourClock: true
