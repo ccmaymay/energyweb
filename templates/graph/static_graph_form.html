@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}Energy Usage at Mudd{% endblock %}
+
+{% block morehead %}
+<link rel="stylesheet" href="{{ MEDIA_URL }}jquery-ui/css/jquery-ui-timepicker.css" type="text/css" media="screen" />
+<script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}jquery-ui/js/jquery.ui.timepicker-0.0.4.js"></script>
+<script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}static_graph_form.js"></script>
+{% endblock %}
+
+{% block content %}
+<form action="{{ form_action }}">
+<table id="static-graph-form">
+    {{ form.as_table }}
+    <tr><th></th><td><input type="submit" value="Submit" /></td></tr>
+</table>
+</form>
+{% endblock %}

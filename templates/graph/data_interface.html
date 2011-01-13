@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Energy Usage at Mudd{% endblock %}
+
+{% block morehead %}
+{% endblock %}
+
+{% block content %}
+<p>
+    The raw data is available in a JSON format.  It can be retrieved at the URL
+    {{ interface_url_template }} where {{ interface_start_placeholder }} and
+    {{ interface_end_placeholder }} are UTC timestamps (seconds since the
+    epoch) indicating your desired date range and 
+    {{ interface_res_placeholder }} is the resolution of the data.  Valid
+    options for the resolution are:
+    <ul>
+        {% for res_choice in res_choices %}
+            <li>{{ res_choice.0 }}</li>
+        {% endfor %}
+    </ul>
+    You may desire to retrieve data at a specific URL more than once in a
+    session.  If this is the case, be careful to avoid any client-side caches.
+    Appending something like {{ interface_junk_suffix }} to the URL, where
+    {{ interface_junk_placeholder }} is randomly generated, may accomplish
+    this. TODO
+</p>
+{% endblock %}

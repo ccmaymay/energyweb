@@ -1,0 +1,222 @@
+[
+    {
+        "pk": 1, 
+        "model": "graph.sensorgroup", 
+        "fields": {
+            "color": "00bd39", 
+            "name": "Atwood"
+        }
+    }, 
+    {
+        "pk": 2, 
+        "model": "graph.sensorgroup", 
+        "fields": {
+            "color": "0776a0", 
+            "name": "Case"
+        }
+    }, 
+    {
+        "pk": 3, 
+        "model": "graph.sensorgroup", 
+        "fields": {
+            "color": "6600cc", 
+            "name": "East"
+        }
+    }, 
+    {
+        "pk": 4, 
+        "model": "graph.sensorgroup", 
+        "fields": {
+            "color": "d100a0", 
+            "name": "Linde"
+        }
+    }, 
+    {
+        "pk": 5, 
+        "model": "graph.sensorgroup", 
+        "fields": {
+            "color": "ff0000", 
+            "name": "North"
+        }
+    }, 
+    {
+        "pk": 6, 
+        "model": "graph.sensorgroup", 
+        "fields": {
+            "color": "ffa000", 
+            "name": "Sontag"
+        }
+    }, 
+    {
+        "pk": 7, 
+        "model": "graph.sensorgroup", 
+        "fields": {
+            "color": "a63f00", 
+            "name": "South"
+        }
+    }, 
+    {
+        "pk": 8, 
+        "model": "graph.sensorgroup", 
+        "fields": {
+            "color": "000000", 
+            "name": "West"
+        }
+    }, 
+    {
+        "pk": 1, 
+        "model": "graph.sensor", 
+        "fields": {
+            "three_phase": true, 
+            "name": "", 
+            "ip": "172.31.10.11", 
+            "sensor_group": 1, 
+            "factor": 8.0, 
+            "port": 4001
+        }
+    }, 
+    {
+        "pk": 2, 
+        "model": "graph.sensor", 
+        "fields": {
+            "three_phase": true, 
+            "name": "", 
+            "ip": "172.31.10.31", 
+            "sensor_group": 2, 
+            "factor": 24.0, 
+            "port": 4001
+        }
+    }, 
+    {
+        "pk": 3, 
+        "model": "graph.sensor", 
+        "fields": {
+            "three_phase": true, 
+            "name": "1", 
+            "ip": "172.31.10.71", 
+            "sensor_group": 3, 
+            "factor": 4.2000000000000002, 
+            "port": 4001
+        }
+    }, 
+    {
+        "pk": 4, 
+        "model": "graph.sensor", 
+        "fields": {
+            "three_phase": false, 
+            "name": "2", 
+            "ip": "172.31.10.72", 
+            "sensor_group": 3, 
+            "factor": 8.0, 
+            "port": 4001
+        }
+    }, 
+    {
+        "pk": 5, 
+        "model": "graph.sensor", 
+        "fields": {
+            "three_phase": true, 
+            "name": "", 
+            "ip": "172.31.10.21", 
+            "sensor_group": 4, 
+            "factor": 16.0, 
+            "port": 4001
+        }
+    }, 
+    {
+        "pk": 6, 
+        "model": "graph.sensor", 
+        "fields": {
+            "three_phase": true, 
+            "name": "1", 
+            "ip": "172.31.10.61", 
+            "sensor_group": 5, 
+            "factor": 0.41999999999999998, 
+            "port": 4001
+        }
+    }, 
+    {
+        "pk": 7, 
+        "model": "graph.sensor", 
+        "fields": {
+            "three_phase": false, 
+            "name": "2", 
+            "ip": "172.31.10.62", 
+            "sensor_group": 5, 
+            "factor": 8.0, 
+            "port": 4001
+        }
+    }, 
+    {
+        "pk": 8, 
+        "model": "graph.sensor", 
+        "fields": {
+            "three_phase": true, 
+            "name": "HVAC", 
+            "ip": "172.31.10.63", 
+            "sensor_group": 5, 
+            "factor": 4.0, 
+            "port": 4001
+        }
+    }, 
+    {
+        "pk": 9, 
+        "model": "graph.sensor", 
+        "fields": {
+            "three_phase": true, 
+            "name": "", 
+            "ip": "172.31.10.41", 
+            "sensor_group": 6, 
+            "factor": 32.0, 
+            "port": 4001
+        }
+    }, 
+    {
+        "pk": 10, 
+        "model": "graph.sensor", 
+        "fields": {
+            "three_phase": true, 
+            "name": "", 
+            "ip": "172.31.10.51", 
+            "sensor_group": 7, 
+            "factor": 12.0, 
+            "port": 4001
+        }
+    }, 
+    {
+        "pk": 11, 
+        "model": "graph.sensor", 
+        "fields": {
+            "three_phase": true, 
+            "name": "1", 
+            "ip": "172.31.10.81", 
+            "sensor_group": 8, 
+            "factor": 0.41999999999999998, 
+            "port": 4001
+        }
+    }, 
+    {
+        "pk": 12, 
+        "model": "graph.sensor", 
+        "fields": {
+            "three_phase": false, 
+            "name": "2", 
+            "ip": "172.31.10.82", 
+            "sensor_group": 8, 
+            "factor": 8.0, 
+            "port": 4001
+        }
+    }, 
+    {
+        "pk": 13, 
+        "model": "graph.sensor", 
+        "fields": {
+            "three_phase": true, 
+            "name": "HVAC", 
+            "ip": "172.31.10.73", 
+            "sensor_group": 8, 
+            "factor": 6.0, 
+            "port": 4001
+        }
+    }
+]

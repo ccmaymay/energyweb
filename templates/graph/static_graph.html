@@ -1,0 +1,18 @@
+{% extends "graph/static_graph_form.html" %}
+
+{% block morehead %}
+{{ block.super }}
+<script language="javascript" type="text/javascript">
+    var MEDIA_URL = "{{ MEDIA_URL }}";
+    var data_url = "{{ data_url }}";
+    var start = {{ start }};
+    var end = {{ end }};
+</script>
+<script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}static_graph.js"></script>
+{% endblock %}
+
+{% block content %}
+<div id="graph"></div>
+
+{{ block.super }}
+{% endblock %}

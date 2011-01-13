@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}Energy Usage at Mudd{% endblock %}
+
+{% block morehead %}
+<script language="javascript" type="text/javascript">
+    var MEDIA_URL = "{{ MEDIA_URL }}";
+    var data_url = "{{ data_url }}";
+</script>
+<script language="javascript" type="text/javascript" src="{{ MEDIA_URL }}index.js"></script>
+{% endblock %}
+
+{% block content %}
+<div id="graph"></div>
+
+<table class="center" id="energystats">
+    <colgroup id="colgroupstats">
+    <col id="leftthcol" />
+    {% for sg in sensor_groups %}
+        {% for s in sg.sensor_set.all %}
+            <col class="col{{ sg.sensor_set.count }}" />
+        {% endfor %}
+    {% endfor %}
+    </colgroup>
+    <tbody>
+        <tr id="trhead">
+            <th rowspan="2" class="leftth"></th>
+            {% for sg in sensor_groups %}
+                {% if sg.sensor_set.count > 1 %}
+                    <th colspan="{{ sg.sensor_set.count }}">{{ sg.name }}</th>
+                {% else %}
+                    <th rowspan="2">{{ sg.name }}</th>
+                {% endif %}
+            {% endfor %}
+        </tr>
+        <tr id="trheadsub">
+            {% for sg in sensor_groups %}
+                {% if sg.sensor_set.count > 1 %}
+                    {% for s in sg.sensor_set.all %}
+                        <th>{{ s.name }}</th>
+                    {% endfor %}
+                {% endif %}
+            {% endfor %}
+        </tr>
+        <tr id="trweek">
+            <th rowspan="2" class="leftth">Average since Monday (kW)</th>
+            {% for sg in sensor_groups %}
+                {% if sg.sensor_set.count > 1 %}
+                    <td colspan="{{ sg.sensor_set.count }}" id="WeeklySG{{ sg.id }}"></td>
+                {% else %}
+                    <td rowspan="2" id="WeeklySG{{ sg.id }}"></td>
+                {% endif %}
+            {% endfor %}
+        </tr>
+        <tr id="trweeksub">
+            {% for sg in sensor_groups %}
+                {% if sg.sensor_set.count > 1 %}
+                    {% for s in sg.sensor_set.all %}
+                        <td id="WeeklyS{{ s.id }}"></td>
+                    {% endfor %}
+                {% endif %}
+            {% endfor %}
+        </tr>
+        <tr id="trmonth">
+            <th rowspan="2" class="leftth">Average this month (kW)</th>
+            {% for sg in sensor_groups %}
+                {% if sg.sensor_set.count > 1 %}
+                    <td colspan="{{ sg.sensor_set.count }}" id="MonthlySG{{ sg.id }}"></td>
+                {% else %}
+                    <td rowspan="2" id="MonthlySG{{ sg.id }}"></td>
+                {% endif %}
+            {% endfor %}
+        </tr>
+        <tr id="trmonthsub">
+            {% for sg in sensor_groups %}
+                {% if sg.sensor_set.count > 1 %}
+                    {% for s in sg.sensor_set.all %}
+                        <td id="MonthlyS{{ s.id }}"></td>
+                    {% endfor %}
+                {% endif %}
+            {% endfor %}
+        </tr>
+    </tbody>
+</table>
+
+{% endblock %}

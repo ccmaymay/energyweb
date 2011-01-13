@@ -1,0 +1,23 @@
+/*
+ * Timepicker stylesheet
+ * Highly inspired from datepicker
+ * FG - Nov 2010 - Web3R
+ *
+ * version 0.0.3 : Fixed some settings, more dynamic
+ * version 0.0.4 : Removed width:100% on tables
+ */
+
+#ui-timepicker-div {  padding: 0.2em }
+#ui-timepicker-hours { float: left; }
+#ui-timepicker-minutes { margin: 0 0 0 0.2em; float: left; }
+
+.ui-timepicker table { margin:0.15em 0 0 0;  font-size: .9em; border-collapse: collapse; }
+
+.ui-timepicker .ui-timepicker-title { line-height: 1.8em; text-align: center; }
+.ui-timepicker td { padding: 1px; width: 2.2em; }
+.ui-timepicker td a {
+    display:block;
+    padding:0.2em 0.3em 0.2em 0.5em;
+    text-align:right;
+    text-decoration:none;
+}
