@@ -8,3 +8,9 @@ urlpatterns = patterns('graph.views',
     (r'^static/(?P<start>\d+)/to/(?P<end>\d+)/(?P<res>[a-z]+(\*10)?)/data.json$', 'static_graph_data'),
     (r'^interface/$', 'data_interface'),
 )
+
+if settings.DEBUG:
+    urlpatterns += patterns('graph.views',
+        (r'^(?P<data>\d+)/data.json.html$', 'index_data_html'),
+        (r'^static/(?P<start>\d+)/to/(?P<end>\d+)/(?P<res>[a-z]+(\*10)?)/data.json.html$', 'static_graph_data_html'),
+    )

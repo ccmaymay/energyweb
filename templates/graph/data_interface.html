@@ -6,6 +6,7 @@
 {% endblock %}
 
 {% block content %}
+<div id="content">
 <p>
     The raw data is available in a JSON format.  It can be retrieved at the URL
     {{ interface_url_template }} where {{ interface_start_placeholder }} and
@@ -24,4 +25,5 @@
     {{ interface_junk_placeholder }} is randomly generated, may accomplish
     this. TODO
 </p>
+</div id="content">
 {% endblock %}

@@ -17,8 +17,8 @@
     <colgroup id="colgroupstats">
     <col id="leftthcol" />
     {% for sg in sensor_groups %}
-        {% for s in sg.sensor_set.all %}
-            <col class="col{{ sg.sensor_set.count }}" />
+        {% for s in sg.3 %}
+            <col class="col{{ sg.3|length }}" />
         {% endfor %}
     {% endfor %}
     </colgroup>
@@ -26,18 +26,18 @@
         <tr id="trhead">
             <th rowspan="2" class="leftth"></th>
             {% for sg in sensor_groups %}
-                {% if sg.sensor_set.count > 1 %}
-                    <th colspan="{{ sg.sensor_set.count }}">{{ sg.name }}</th>
+                {% if sg.3|length > 1 %}
+                    <th colspan="{{ sg.3|length }}">{{ sg.1 }}</th>
                 {% else %}
-                    <th rowspan="2">{{ sg.name }}</th>
+                    <th rowspan="2">{{ sg.1 }}</th>
                 {% endif %}
             {% endfor %}
         </tr>
         <tr id="trheadsub">
             {% for sg in sensor_groups %}
-                {% if sg.sensor_set.count > 1 %}
-                    {% for s in sg.sensor_set.all %}
-                        <th>{{ s.name }}</th>
+                {% if sg.3|length > 1 %}
+                    {% for s in sg.3 %}
+                        <th>{{ s.1 }}</th>
                     {% endfor %}
                 {% endif %}
             {% endfor %}
@@ -45,18 +45,18 @@
         <tr id="trweek">
             <th rowspan="2" class="leftth">Average since Monday (kW)</th>
             {% for sg in sensor_groups %}
-                {% if sg.sensor_set.count > 1 %}
-                    <td colspan="{{ sg.sensor_set.count }}" id="WeeklySG{{ sg.id }}"></td>
+                {% if sg.3|length > 1 %}
+                    <td colspan="{{ sg.3|length }}" id="WeeklySG{{ sg.0 }}"></td>
                 {% else %}
-                    <td rowspan="2" id="WeeklySG{{ sg.id }}"></td>
+                    <td rowspan="2" id="WeeklySG{{ sg.0 }}"></td>
                 {% endif %}
             {% endfor %}
         </tr>
         <tr id="trweeksub">
             {% for sg in sensor_groups %}
-                {% if sg.sensor_set.count > 1 %}
-                    {% for s in sg.sensor_set.all %}
-                        <td id="WeeklyS{{ s.id }}"></td>
+                {% if sg.3|length > 1 %}
+                    {% for s in sg.3 %}
+                        <td id="WeeklyS{{ s.0 }}"></td>
                     {% endfor %}
                 {% endif %}
             {% endfor %}
@@ -64,18 +64,18 @@
         <tr id="trmonth">
             <th rowspan="2" class="leftth">Average this month (kW)</th>
             {% for sg in sensor_groups %}
-                {% if sg.sensor_set.count > 1 %}
-                    <td colspan="{{ sg.sensor_set.count }}" id="MonthlySG{{ sg.id }}"></td>
+                {% if sg.3|length > 1 %}
+                    <td colspan="{{ sg.3|length }}" id="MonthlySG{{ sg.0 }}"></td>
                 {% else %}
-                    <td rowspan="2" id="MonthlySG{{ sg.id }}"></td>
+                    <td rowspan="2" id="MonthlySG{{ sg.0 }}"></td>
                 {% endif %}
             {% endfor %}
         </tr>
         <tr id="trmonthsub">
             {% for sg in sensor_groups %}
-                {% if sg.sensor_set.count > 1 %}
-                    {% for s in sg.sensor_set.all %}
-                        <td id="MonthlyS{{ s.id }}"></td>
+                {% if sg.3|length > 1 %}
+                    {% for s in sg.3 %}
+                        <td id="MonthlyS{{ s.0 }}"></td>
                     {% endfor %}
                 {% endif %}
             {% endfor %}

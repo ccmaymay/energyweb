@@ -4,6 +4,12 @@
     font-family: sans-serif;
 }
 
+div#content
+{
+    width: 985px;
+    margin: auto;
+}
+
 img.loading
 {
     padding-top: 200px;

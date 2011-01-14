@@ -4,60 +4,124 @@ from django.core import serializers
 from django.http import HttpResponse
 from django.template import RequestContext
 from django.core.urlresolvers import reverse
+from django.conf import settings
 from django import forms
 from graph.models import SensorGroup, Sensor, PowerAverage
 import calendar, datetime, simplejson
 
-
-STATIC_GRAPH_RESS = [res for res in PowerAverage.AVERAGE_TYPES
-                              if res != 'month'] # TODO
-STATIC_GRAPH_RES_CHOICES = ([('auto', 'auto')]
-    + [(res_choice, PowerAverage.AVERAGE_TYPE_DESCRIPTIONS[res_choice])
-       for res_choice in STATIC_GRAPH_RESS])
-
-DATE_INPUT_FORMATS = (
-    '%Y-%m-%d',              # '2006-10-25'
-    '%m/%d/%Y',              # '10/25/2006'
-    '%m/%d/%y',              # '10/25/06'
-)
-
-TIME_INPUT_FORMATS = (
-    '%H:%M',        # '14:30'
-    '%I:%M %p',     # '2:30 PM'
-    '%I%p',         # '2PM'
-)
 
 # If a full graph has this many points or fewer, show the individual
 # points.  (Otherwise only draw the lines.)
 GRAPH_SHOW_POINTS_THRESHOLD = 40
 
 
+def _graph_max_points(start, end, res):
+    delta = end - start
+    per_incr = PowerAverage.AVERAGE_TYPE_TIMEDELTAS[res]
+    return ((delta.days * 3600 * 24 + delta.seconds) 
+            / float(per_incr.days * 3600 * 24 + per_incr.seconds))
+
+
 class StaticGraphForm(forms.Form):
-    _DATE_FORMAT = '%Y-%m-%d'
-    _TIME_FORMAT = '%l:%M %p'
-    _DT_INPUT_SIZE = '10'
+    # TODO: improve (also, see auto res selector)
+    GRAPH_MAX_POINTS = 2000
+    DATE_INPUT_FORMATS = (
+        '%Y-%m-%d',              # '2006-10-25'
+        '%m/%d/%Y',              # '10/25/2006'
+        '%m/%d/%y',              # '10/25/06'
+    )
+    TIME_INPUT_FORMATS = (
+        '%H:%M',        # '14:30'
+        '%I:%M %p',     # '2:30 PM'
+        '%I%p',         # '2PM'
+    )
+    DATE_FORMAT = '%Y-%m-%d'
+    TIME_FORMAT = '%l:%M %p'
+    DT_INPUT_SIZE = '10'
+    # TODO (month) (make more robust)
+    RES_LIST = [res for res in PowerAverage.AVERAGE_TYPES if res != 'month']
+    RES_CHOICES = (
+        [('auto', 'auto')]
+        + [(res_choice, PowerAverage.AVERAGE_TYPE_DESCRIPTIONS[res_choice])
+           for res_choice in RES_LIST]
+    )
+
 
     start = forms.SplitDateTimeField(input_date_formats=DATE_INPUT_FORMATS,
         input_time_formats=TIME_INPUT_FORMATS,
-        widget=forms.SplitDateTimeWidget(attrs={'size': _DT_INPUT_SIZE},
-                                         date_format=_DATE_FORMAT,
-                                         time_format=_TIME_FORMAT))
+        widget=forms.SplitDateTimeWidget(attrs={'size': DT_INPUT_SIZE},
+                                         date_format=DATE_FORMAT,
+                                         time_format=TIME_FORMAT))
 
     end = forms.SplitDateTimeField(input_date_formats=DATE_INPUT_FORMATS,
         input_time_formats=TIME_INPUT_FORMATS,
-        widget=forms.SplitDateTimeWidget(attrs={'size': _DT_INPUT_SIZE},
-                                         date_format=_DATE_FORMAT,
-                                         time_format=_TIME_FORMAT))
+        widget=forms.SplitDateTimeWidget(attrs={'size': DT_INPUT_SIZE},
+                                         date_format=DATE_FORMAT,
+                                         time_format=TIME_FORMAT))
 
-    res = forms.ChoiceField(label='Resolution', 
-        choices=STATIC_GRAPH_RES_CHOICES)
+    res = forms.ChoiceField(label='Resolution', choices=RES_CHOICES)
+
+    def clean(self):
+        cleaned_data = self.cleaned_data
+
+        if not cleaned_data['start'] < cleaned_data['end']:
+            raise forms.ValidationError('Start and end times do not '
+                                        'constitute a valid range.')
+
+        delta = cleaned_data['end'] - cleaned_data['start']
+        if cleaned_data['res'] in self.RES_LIST:
+            per_incr = PowerAverage.AVERAGE_TYPE_TIMEDELTAS[
+                cleaned_data['res']]
+            max_points = ((delta.days * 3600 * 24 + delta.seconds) 
+                / float(per_incr.days * 3600 * 24 + per_incr.seconds))
+            if _graph_max_points(cleaned_data['start'], 
+                                 cleaned_data['end'], 
+                                 cleaned_data['res']) > self.GRAPH_MAX_POINTS:
+                raise forms.ValidationError('Too many points in graph '
+                                            '(resolution too fine).')
+            cleaned_data['computed_res'] = cleaned_data['res']
+        else:
+            if delta.days > 7*52*3: # 3 years
+                cleaned_data['computed_res'] = 'week'
+            elif delta.days > 7*8: # 8 weeks
+                cleaned_data['computed_res'] = 'day'
+            elif delta.days > 6:
+                cleaned_data['computed_res'] = 'hour'
+            elif delta.days > 0:
+                cleaned_data['computed_res'] = 'minute*10'
+            elif delta.seconds > 3600*3: # 3 hours
+                cleaned_data['computed_res'] = 'minute'
+            else:
+                cleaned_data['computed_res'] = 'second*10'
+        return cleaned_data
 
 
+# TODO: make this less arbitrary / easier to use?
 def _get_sensor_groups():
-    return [[sg.pk, sg.name, sg.color, 
-             [[s.pk, s.name] 
-              for s in sg.sensor_set.all()]] 
-            for sg in SensorGroup.objects.all()]
+    sensors = Sensor.objects.select_related().order_by('sensor_group__pk')
+
+    sensor_groups = []
+    sensor_ids = []
+    sensor_ids_by_group = {}
+    sg_id = None
+
+    for sensor in sensors:
+        sensor_ids.append(sensor.pk)
+        if sg_id == sensor.sensor_group.pk:
+            sensor_groups[-1][3].append([sensor.pk, sensor.name])
+            sensor_ids_by_group[sg_id].append(sensor.pk)
+        else:
+            sg_id = sensor.sensor_group.pk
+            sensor_groups.append([
+                         sg_id,
+                         sensor.sensor_group.name,
+                         sensor.sensor_group.color, 
+                         [
+                             [sensor.pk, sensor.name]
+                         ]
+                     ])
+            sensor_ids_by_group[sg_id] = [sensor.pk]
+    return (sensor_groups, sensor_ids, sensor_ids_by_group)
 
 
 def data_interface(request):
@@ -69,7 +133,7 @@ def data_interface(request):
          'interface_res_placeholder': '<res>',
          'interface_junk_suffix': '?junk=<junk>',
          'interface_junk_placeholder': '<junk>',
-         'res_choices': STATIC_GRAPH_RES_CHOICES},
+         'res_choices': StaticGraphForm.RES_CHOICES},
         context_instance=RequestContext(request))
 
 
@@ -78,7 +142,7 @@ def index(request):
     start_dt = datetime.datetime.now() - datetime.timedelta(0, 3600*3, 0)
     data = str(int(calendar.timegm(start_dt.timetuple()) * 1000))
     return render_to_response('graph/index.html', 
-        {'sensor_groups': SensorGroup.objects.all(),
+        {'sensor_groups': _get_sensor_groups()[0],
          'data_url': reverse('graph.views.index_data', 
                              kwargs={'data': data}) + '?junk=' + junk},
         context_instance=RequestContext(request))
@@ -88,13 +152,7 @@ def index_data(request, data):
     from django.db import connection, transaction
     cur = connection.cursor()
 
-    sensor_groups = SensorGroup.objects.all()
-    sensor_ids_by_group = {}
-    sensor_ids = []
-    for sg in sensor_groups:
-        sensor_id_set = [s.pk for s in sg.sensor_set.all()]
-        sensor_ids_by_group[sg.pk] = sensor_id_set
-        sensor_ids.extend(sensor_id_set)
+    (sensor_groups, sensor_ids, sensor_ids_by_group) = _get_sensor_groups()
 
     # We will display only the latest averages for the user, so
     # assume the latest average is calculated for each sensor 
@@ -161,7 +219,7 @@ def index_data(request, data):
     # Now organize the query in a format amenable to the 
     # (javascript) client.  (The grapher wants (x, y) pairs.)
 
-    sg_xy_pairs = dict([[sg.pk, []] for sg in sensor_groups])
+    sg_xy_pairs = dict([[sg[0], []] for sg in sensor_groups])
     r = cur.fetchone()
     if r is None:
         d = {'no_results': True,
@@ -179,7 +237,7 @@ def index_data(request, data):
             x = int(calendar.timegm(per.timetuple()) * 1000)
             for sg in sensor_groups:
                 y = 0
-                for sid in sensor_ids_by_group[sg.pk]:
+                for sid in sensor_ids_by_group[sg[0]]:
                     # If this sensor has a reading for the current per,
                     # update y.  There are three ways the sensor might
                     # not have such a reading:
@@ -199,7 +257,7 @@ def index_data(request, data):
                         r = cur.fetchone()
                     else:
                         y = None
-                sg_xy_pairs[sg.pk].append((x, y))
+                sg_xy_pairs[sg[0]].append((x, y))
             per += per_incr
     
         last_record = x
@@ -215,7 +273,7 @@ def index_data(request, data):
                  desired_first_record,
              'week_averages': week_and_month_averages['week'],
              'month_averages': week_and_month_averages['month'],
-             'sensor_groups': _get_sensor_groups(),
+             'sensor_groups': sensor_groups,
              'data_url': data_url}
 
     json_serializer = serializers.get_serializer("json")()
@@ -230,32 +288,19 @@ def static_graph(request):
         and 'end_0' in request.GET 
         and 'res' in request.GET):
 
-        # Allow user to have inputted e.g. pm or p.m. instead of PM
         _get = request.GET.copy()
         for field in ('start_0', 'start_1', 'end_0', 'end_1'):
             if field in ('start_1', 'end_1'):
+                # Allow e.g. pm or p.m. instead of PM
                 _get[field] = _get[field].upper().replace('.', '')
+            # Allow surrounding whitespace
             _get[field] = _get[field].strip()
 
         form = StaticGraphForm(_get)
         if form.is_valid():
             start = form.cleaned_data['start']
             end = form.cleaned_data['end']
-            res = form.cleaned_data['res']
-            delta = end - start
-            if res not in STATIC_GRAPH_RESS:
-                if delta.days > 7*52*3: # 3 years
-                    res = 'week'
-                elif delta.days > 7*8: # 8 weeks
-                    res = 'day'
-                elif delta.days > 6:
-                    res = 'hour'
-                elif delta.days > 0:
-                    res = 'minute*10'
-                elif delta.seconds > 3600*3: # 3 hours
-                    res = 'minute'
-                else:
-                    res = 'second*10'
+            res = form.cleaned_data['computed_res']
 
             int_start = int(calendar.timegm(start.timetuple()))
             int_end = int(calendar.timegm(end.timetuple()))
@@ -269,8 +314,7 @@ def static_graph(request):
                                        'res': res}) + '?junk=' + junk
 
             return render_to_response('graph/static_graph.html', 
-                {'sensor_groups': SensorGroup.objects.all(),
-                 'start': js_start,
+                {'start': js_start,
                  'end': js_end,
                  'data_url': data_url,
                  'form': form,
@@ -302,18 +346,9 @@ def static_graph_data(request, start, end, res):
 
     start_dt = datetime.datetime.utcfromtimestamp(int(start))
     end_dt = datetime.datetime.utcfromtimestamp(int(end))
-    delta = end_dt - start_dt
     per_incr = PowerAverage.AVERAGE_TYPE_TIMEDELTAS[res]
-    max_points = ((delta.days * 3600 * 24 + delta.seconds) 
-                  / float(per_incr.days * 3600 * 24 + per_incr.seconds))
 
-    sensor_groups = SensorGroup.objects.all()
-    sensor_ids_by_group = {}
-    sensor_ids = []
-    for sg in sensor_groups:
-        sensor_id_set = [s.pk for s in sg.sensor_set.all()]
-        sensor_ids_by_group[sg.pk] = sensor_id_set
-        sensor_ids.extend(sensor_id_set)
+    (sensor_groups, sensor_ids, sensor_ids_by_group) = _get_sensor_groups()
 
     # Now, calculate the data points for the graph we're going to
     # display.  This is harder than it should be since the points
@@ -349,11 +384,11 @@ def static_graph_data(request, start, end, res):
     # Now organize the query in a format amenable to the 
     # (javascript) client.  (The grapher wants (x, y) pairs.)
 
-    sg_xy_pairs = dict([[sg.pk, []] for sg in sensor_groups])
+    sg_xy_pairs = dict([[sg[0], []] for sg in sensor_groups])
     r = cur.fetchone()
     if r is None:
         d = {'no_results': True,
-             'sensor_groups': _get_sensor_groups()}
+             'sensor_groups': sensor_groups}
     else:
         per = r[2]
 
@@ -365,7 +400,7 @@ def static_graph_data(request, start, end, res):
             x = int(calendar.timegm(per.timetuple()) * 1000)
             for sg in sensor_groups:
                 y = 0
-                for sid in sensor_ids_by_group[sg.pk]:
+                for sid in sensor_ids_by_group[sg[0]]:
                     # If this sensor has a reading for the current per,
                     # update y.  There are three ways the sensor might
                     # not have such a reading:
@@ -385,15 +420,39 @@ def static_graph_data(request, start, end, res):
                         r = cur.fetchone()
                     else:
                         y = None
-                sg_xy_pairs[sg.pk].append((x, y))
+                sg_xy_pairs[sg[0]].append((x, y))
             per += per_incr
     
         d = {'no_results': False,
              'sg_xy_pairs': sg_xy_pairs,
-             'show_points': max_points <= GRAPH_SHOW_POINTS_THRESHOLD,
-             'sensor_groups': _get_sensor_groups()}
+             'show_points': _graph_max_points(start_dt, end_dt, res) 
+                            <= GRAPH_SHOW_POINTS_THRESHOLD,
+             'sensor_groups': sensor_groups}
 
     json_serializer = serializers.get_serializer("json")()
     return HttpResponse(#TODO json_serializer.serialize(d, ensure_ascii=False),
                         simplejson.dumps(d),
                         mimetype='application/json')
+
+
+if settings.DEBUG:
+
+    def _html_wrapper(view_name):
+        '''
+        Wrap a view in HTML.  (Useful for using the debug toolbar with
+        JSON responses.)
+        '''
+        view = globals()[view_name]
+        def _view(*args, **kwargs):
+            response = view(*args, **kwargs)
+            return HttpResponse('''
+                                <html>
+                                    <head><title>%s HTML</title></head>
+                                    <body>%s</body>
+                                </html>
+                                ''' % (view_name, response.content), 
+                                mimetype='text/html')
+        return _view
+
+    index_data_html = _html_wrapper('index_data')
+    static_graph_data_html = _html_wrapper('static_graph_data')
