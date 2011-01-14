@@ -232,8 +232,10 @@ def static_graph(request):
 
         # Allow user to have inputted e.g. pm or p.m. instead of PM
         _get = request.GET.copy()
-        _get['start_1'] = _get['start_1'].upper().replace('.', '')
-        _get['end_1'] = _get['end_1'].upper().replace('.', '')
+        for field in ('start_0', 'start_1', 'end_0', 'end_1'):
+            if field in ('start_1', 'end_1'):
+                _get[field] = _get[field].upper().replace('.', '')
+            _get[field] = _get[field].strip()
 
         form = StaticGraphForm(_get)
         if form.is_valid():
