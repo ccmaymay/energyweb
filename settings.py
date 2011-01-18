@@ -43,9 +43,14 @@ USE_I18N = True
 # calendars according to the current locale
 USE_L10N = True
 
+# The following is used in energyweb for the static files.  It should
+# be an absolute path to static/ .
+
 # Absolute path to the directory that holds media.
 # Example: "/home/media/media.lawrence.com/"
 MEDIA_ROOT = '/var/local/energy/static/'
+
+# The following is used in energyweb for the static files.
 
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash if there is a path component (optional in other cases).
@@ -92,10 +97,10 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'graph',
     # Uncomment the next line to enable the admin:
-    'django.contrib.admin',
+    #'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:
-    'django.contrib.admindocs',
-    'django.contrib.databrowse',
+    #'django.contrib.admindocs',
+    #'django.contrib.databrowse',
 )
 
 TEMPLATE_CONTEXT_PROCESSORS = (

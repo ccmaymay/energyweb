@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Energy Usage at Mudd{% endblock %}
+{% block title %}Energy Usage at Mudd: Data Interface{% endblock %}
 
 {% block morehead %}
 {% endblock %}
@@ -19,11 +19,70 @@
             <li>{{ res_choice.0 }}</li>
         {% endfor %}
     </ul>
+    If you choose automatic resolution, the resolution will be chosen for you
+    based on the size of your date range.
+</p>
+<p>
     You may desire to retrieve data at a specific URL more than once in a
     session.  If this is the case, be careful to avoid any client-side caches.
     Appending something like {{ interface_junk_suffix }} to the URL, where
     {{ interface_junk_placeholder }} is randomly generated, may accomplish
-    this. TODO
+    this.
+</p>
+<p>
+    The JSON data is a hashmap (associative array, dictionary) whose keys and
+    values are as follows.
+    <ul>
+        <li>no_results: 
+            A boolean indicating whether any results have been found.  If this
+            is false, there are no readings in the specified date range, or the
+            resolution may be too coarse.
+        </li>
+        <li>sensor_groups:
+            A list representing the sensors and sensor groups.  (See below for
+            an explanation of these and a description of the structure of this
+            list.)
+        </li>
+        <li>show_points:  (Not present when no_results is true.)
+            A boolean used in the web-based graph to determine whether to show
+            individual points or just the lines connecting them.  This is
+            probably not important to you unless you want to display a graph
+            of similar scale and don't want to decide yourself whether there
+            are too many points to show.
+        </li>
+        <li>sg_xy_pairs:  (Not present when no_results is true.)
+            A hashmap (associative array, dictionary) representing the data.
+            Its structure is explained below.
+        </li>
+    </ul>
+    For each Rhizome device reporting power data to the system, there is a
+    "sensor" in the database.  At Mudd, some dorms have multiple sensors, so
+    sensors are grouped (into aptly-named "sensor groups") by dorm.  Each
+    sensor group is represented in sensor_groups as a list whose elements
+    are as follows.
+    <ol>
+        <li>The unique ID of the sensor group (an integer).</li>
+        <li>The name of the sensor group, i.e. the name of the dorm 
+            (a string).</li>
+        <li>The color corresponding to the sensor group in the web-based graph
+            (a six-character string indicating the hexadecimal RGB code).</li>
+        <li>A list of sensors belonging to this sensor group.  (Each sensor is
+            represented, in turn, as a two-element list:  The unique sensor ID,
+            an integer, and the name of the sensor, a string.)</li>
+    </ol>
+    The hashmap (associative array, dictionary) sg_xy_pairs has keys equal to
+    the sensor group IDs (encoded as strings).  The value for a given sensor
+    group is a list of lists, each of which has two elements:  A UTC
+    timestamp in milliseconds representing the time of a power reading, and 
+    the power reading itself (in kilowatts, as a floating-point number).
+</p>
+<p>
+Note that power readings are collected every 10 seconds.  When you request data
+using this interface, however, you retrieve averages.  For example, using the
+per-week resolution, the data returned will be per-week averages indexed by the
+start date of each week.  This holds true even for per-ten-second resolution.
+(The data is easier to work with this way, since some ten-second intervals may
+have no points while some could potentially have two points.)
 </p>
 </div id="content">
 {% endblock %}

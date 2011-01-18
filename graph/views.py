@@ -1,4 +1,3 @@
-# Create your views here.
 from django.shortcuts import render_to_response
 from django.core import serializers
 from django.http import HttpResponse
@@ -16,6 +15,12 @@ GRAPH_SHOW_POINTS_THRESHOLD = 40
 
 
 def _graph_max_points(start, end, res):
+    '''
+    Return the maximum number of points a graph for this date range
+    (starting at datetime start and ending at datetime end), and
+    using resolution res, might have.  (The graph may have fewer
+    points if there are missing sensor readings in the date range.)
+    '''
     delta = end - start
     per_incr = PowerAverage.AVERAGE_TYPE_TIMEDELTAS[res]
     return ((delta.days * 3600 * 24 + delta.seconds) 
@@ -23,7 +28,9 @@ def _graph_max_points(start, end, res):
 
 
 class StaticGraphForm(forms.Form):
-    # TODO: improve (also, see auto res selector)
+    # TODO: GRAPH_MAX_POINTS is used to determine when to refuse data
+    # because the resolution is too fine (it would be too hard on the
+    # database).  This functionality could be more robust.
     GRAPH_MAX_POINTS = 2000
     DATE_INPUT_FORMATS = (
         '%Y-%m-%d',              # '2006-10-25'
@@ -38,7 +45,8 @@ class StaticGraphForm(forms.Form):
     DATE_FORMAT = '%Y-%m-%d'
     TIME_FORMAT = '%l:%M %p'
     DT_INPUT_SIZE = '10'
-    # TODO (month) (make more robust)
+    # TODO (last I checked, the entry for month in AVERAGE_TYPES was
+    # None... handle this less hackishly)
     RES_LIST = [res for res in PowerAverage.AVERAGE_TYPES if res != 'month']
     RES_CHOICES = (
         [('auto', 'auto')]
@@ -62,6 +70,14 @@ class StaticGraphForm(forms.Form):
     res = forms.ChoiceField(label='Resolution', choices=RES_CHOICES)
 
     def clean(self):
+        '''
+        Ensure that:
+        * Start and end times constitute a valid range.
+        * The number of data points requested is reasonable.
+        Also set computed_res (a key in the cleaned data dictionary)
+        to the specified resolution, or if the specified resolution was
+        auto, set it to the actual resolution to be used.
+        '''
         cleaned_data = self.cleaned_data
 
         if not cleaned_data['start'] < cleaned_data['end']:
@@ -96,8 +112,12 @@ class StaticGraphForm(forms.Form):
         return cleaned_data
 
 
-# TODO: make this less arbitrary / easier to use?
+# TODO: this could probably be done in a more portable way.
 def _get_sensor_groups():
+    '''
+    Return a list representing the sensors and sensor groups.  (See the
+    code for a description of the structure of the list.)
+    '''
     sensors = Sensor.objects.select_related().order_by('sensor_group__pk')
 
     sensor_groups = []
@@ -125,6 +145,9 @@ def _get_sensor_groups():
 
 
 def data_interface(request):
+    '''
+    A mostly static-HTML view explaining the public data interface.
+    '''
     return render_to_response('graph/data_interface.html', 
         {'interface_url_template': 
              '/graph/static/<start>/to/<end>/<res>/data.json',
@@ -137,30 +160,30 @@ def data_interface(request):
         context_instance=RequestContext(request))
 
 
-def index(request):
+def dynamic_graph(request):
+    '''
+    A view returning the HTML for the dynamic (home-page) graph.
+    (This graph represents the last three hours and updates
+    automatically.)
+    '''
     junk = str(calendar.timegm(datetime.datetime.now().timetuple()))
     start_dt = datetime.datetime.now() - datetime.timedelta(0, 3600*3, 0)
     data = str(int(calendar.timegm(start_dt.timetuple()) * 1000))
-    return render_to_response('graph/index.html', 
+    return render_to_response('graph/dynamic_graph.html', 
         {'sensor_groups': _get_sensor_groups()[0],
-         'data_url': reverse('graph.views.index_data', 
+         'data_url': reverse('graph.views.dynamic_graph_data', 
                              kwargs={'data': data}) + '?junk=' + junk},
         context_instance=RequestContext(request))
 
 
-def index_data(request, data):
+def dynamic_graph_data(request, data):
+    '''
+    A view returning the JSON data used to populate the dynamic graph.
+    '''
     from django.db import connection, transaction
     cur = connection.cursor()
 
     (sensor_groups, sensor_ids, sensor_ids_by_group) = _get_sensor_groups()
-
-    # We will display only the latest averages for the user, so
-    # assume the latest average is calculated for each sensor 
-    # (within a given average type).  If some averages have not
-    # been computed---so our query returns several of the latest
-    # time-period averages, but also some averages from the past,
-    # and hence does not contain the latest averages for all
-    # sensors---then return None in their place.
 
     week_and_month_averages = dict(week={}, month={})
 
@@ -172,31 +195,21 @@ def index_data(request, data):
             if trunc_reading_time is None:
                 trunc_reading_time = average.trunc_reading_time
             if average.trunc_reading_time == trunc_reading_time:
+                # Note that we limited the query by the number of sensors in
+                # the database.  However, there may not be an average for
+                # every sensor for this time period.  If this is the case,
+                # some of the results will be for an earlier time period and
+                # have an earlier trunc_reading_time .
                 week_and_month_averages[average_type][average.sensor_id] \
                     = average.watts / 1000.0
         for sensor_id in sensor_ids:
             if not week_and_month_averages[average_type].has_key(sensor_id):
+                # We didn't find an average for this sensor; set the entry
+                # to None.
                 week_and_month_averages[average_type][sensor_id] = None
 
     week_averages = week_and_month_averages['week']
     month_averages = week_and_month_averages['month']
-
-    # Now, calculate the data points for the graph we're going to
-    # display.  This is harder than it should be since the points
-    # are pulled from a practically continuous range of times,
-    # but we want to somehow sum the lines within a given sensor
-    # group---we want West Dorm's power usage, not the usages on
-    # West's three individual sensors.  Stochastic simulation (e.g.)
-    # may have something very interesting to say about this, but for
-    # the time being we will settle for summing points within
-    # ten-second intervals.  The client (javascript) can then deal
-    # with the null values (the infrequent cases when no reading
-    # appears within one of these 10-second bins for a certain
-    # sensor) as it desires.  (3 hours, by the way, is the length of
-    # time to be represented on the graph.)
-
-    # trunc_reading_time in the query below is a timestamp representing
-    # the ten-second interval to which the current reading belongs.
 
     # If the client has supplied data (a string of digits in the
     # URL---representing UTC seconds since the epoch), then we only
@@ -265,7 +278,7 @@ def index_data(request, data):
         desired_first_record = x - 1000*3600*3 + 1000*10
     
         junk = str(calendar.timegm(datetime.datetime.now().timetuple()))
-        data_url = reverse('graph.views.index_data', 
+        data_url = reverse('graph.views.dynamic_graph_data', 
                            kwargs={'data': str(last_record)}) + '?junk=' + junk
         d = {'no_results': False,
              'sg_xy_pairs': sg_xy_pairs,
@@ -277,12 +290,14 @@ def index_data(request, data):
              'data_url': data_url}
 
     json_serializer = serializers.get_serializer("json")()
-    return HttpResponse(#TODO json_serializer.serialize(d, ensure_ascii=False),
-                        simplejson.dumps(d),
+    return HttpResponse(simplejson.dumps(d),
                         mimetype='application/json')
 
 
 def static_graph(request):
+    '''
+    A view returning the HTML for the static (custom-time-period) graph.
+    '''
     if (request.method == 'GET' 
         and 'start_0' in request.GET 
         and 'end_0' in request.GET 
@@ -341,6 +356,9 @@ def static_graph(request):
 
 
 def static_graph_data(request, start, end, res):
+    '''
+    A view returning the JSON data used to populate the static graph.
+    '''
     from django.db import connection, transaction
     cur = connection.cursor()
 
@@ -350,36 +368,7 @@ def static_graph_data(request, start, end, res):
 
     (sensor_groups, sensor_ids, sensor_ids_by_group) = _get_sensor_groups()
 
-    # Now, calculate the data points for the graph we're going to
-    # display.  This is harder than it should be since the points
-    # are pulled from a practically continuous range of times,
-    # but we want to somehow sum the lines within a given sensor
-    # group---we want West Dorm's power usage, not the usages on
-    # West's three individual sensors.  Stochastic simulation (e.g.)
-    # may have something very interesting to say about this, but for
-    # the time being we will settle for summing points within
-    # ten-second intervals.  The client (javascript) can then deal
-    # with the null values (the infrequent cases when no reading
-    # appears within one of these 10-second bins for a certain
-    # sensor) as it desires.  (3 hours, by the way, is the length of
-    # time to be represented on the graph.)
-
-    # trunc_reading_time in the query below is a timestamp representing
-    # the ten-second interval to which the current reading belongs.
-
-    # If the client has supplied data (a string of digits in the
-    # URL---representing UTC seconds since the epoch), then we only
-    # consider data since (and including) that timestamp.
-
     PowerAverage.graph_data_execute(cur, res, start_dt, end_dt)
-
-    # Also note, above, that if data was supplied then we selected
-    # everything since the provided timestamp's truncated date,
-    # including that date.  We will always provide the client with
-    # a new copy of the latest record he received last time, since
-    # that last record may have changed (more sensors may have
-    # submitted measurements and added to it).  The second to
-    # latest and older records, however, will never change.
 
     # Now organize the query in a format amenable to the 
     # (javascript) client.  (The grapher wants (x, y) pairs.)
@@ -430,13 +419,11 @@ def static_graph_data(request, start, end, res):
              'sensor_groups': sensor_groups}
 
     json_serializer = serializers.get_serializer("json")()
-    return HttpResponse(#TODO json_serializer.serialize(d, ensure_ascii=False),
-                        simplejson.dumps(d),
+    return HttpResponse(simplejson.dumps(d),
                         mimetype='application/json')
 
 
 if settings.DEBUG:
-
     def _html_wrapper(view_name):
         '''
         Wrap a view in HTML.  (Useful for using the debug toolbar with
@@ -454,5 +441,5 @@ if settings.DEBUG:
                                 mimetype='text/html')
         return _view
 
-    index_data_html = _html_wrapper('index_data')
+    dynamic_graph_data_html = _html_wrapper('dynamic_graph_data')
     static_graph_data_html = _html_wrapper('static_graph_data')

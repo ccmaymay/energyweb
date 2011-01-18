@@ -123,7 +123,8 @@ class FakeRhizomeDaemon(Daemon):
         # handler?
         FakeRhizomeHandler.profile = [unhexlify(s) for s in 
                                       FAKE_RHIZOME_PROFILES[sensor_id]]
-        self.sock = TCPServer((self.sensor.ip, self.sensor.port), FakeRhizomeHandler)
+        self.sock = TCPServer((self.sensor.ip, self.sensor.port), 
+                              FakeRhizomeHandler)
         info('Serving for sensor %d (%s, %s).' % (sensor_id, desc, addr))
         self.sock.serve_forever()
 

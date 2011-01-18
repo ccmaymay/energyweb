@@ -18,9 +18,9 @@ versions.  It may work on other platforms or with other versions, but
 this is not guaranteed.
 
 * Django 1.2
-* Python 2.6.5, 2.6.6
-* PostgreSQL 8.4.5, 8.4.6
-* psycopg 2.0.13, 2.2.1
+* Python 2.6.6
+* PostgreSQL 8.4.6
+* psycopg 2.2.1
 
 In addition, energyweb includes the following JavaScript packages.
 

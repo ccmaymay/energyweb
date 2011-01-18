@@ -12,7 +12,7 @@ $(function () {
     function getdata_json_cb(data) {
         // Given data from the server, update the graph.
         if (data.no_results) {
-            return; // TODO
+            return; // TODO: tell the user what happened?
         }
     
         var series_opts = [];

@@ -6,7 +6,7 @@
 
 div#content
 {
-    width: 985px;
+    max-width: 985px;
     margin: auto;
 }
 

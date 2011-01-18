@@ -1,6 +1,12 @@
 #!/usr/bin/env python
 
 
+'''
+Set up the development environment.  In particular, change sensor 
+settings to those used by energyfaker.
+'''
+
+
 from django.core.management.base import BaseCommand, CommandError
 from django.db.models import F
 from graph.models import Sensor

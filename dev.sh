@@ -3,7 +3,9 @@
 
 # Convenience script:  Starts, stops, or restarts all fake Rhizome 
 # servers and all monitors (assuming sensor IDs are 1, 2, ..., 13).
-# Expects the command (start, stop, restart) as an argument.
+# Can also initialize the development environment (recreate the DB,
+# initialize with development-friendly data).
+# Expects the command (start, stop, restart, init) as an argument.
 
 
 USAGE_STR="Usage: $0 init|start|stop|restart"

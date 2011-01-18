@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+
+
 '''
 Connect to an energy monitoring device as those designed by Joseph
 King of Rhizome Systems.  (These devices speak in TCP/IP and can
@@ -22,6 +25,10 @@ from django.db import connection, transaction
 
 
 def rollback_on_exception(f):
+    '''
+    Catch any exception, rollback the transaction, then re-raise the
+    exception.
+    '''
     def _f(*args, **kwargs):
         try:
             return f(*args, **kwargs)

@@ -30,9 +30,10 @@ $(function () {
         // Given new data from the server, update the page (graph and
         // table).
 
-        // TODO: what if somehow we get no results and it's not the first time?
+        // TODO: what if somehow we get no results and it's not the 
+        // first time?
         if (first_time && data.no_results) {
-            return; // TODO
+            return; // TODO: tell the user what happened?
         }
 
         // When this function is first called, it is expected that 

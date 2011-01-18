@@ -55,7 +55,9 @@ class SensorReading(models.Model):
 class PowerAverage(models.Model):
     AVERAGE_TYPES = ('month', 'week', 'day', 'hour', 
                      'minute*10', 'minute', 'second*10')
-    # TODO: month? (should never have to use it as a resolution...)
+    # TODO: month timedelta? (okay that it's None, for now, since we
+    # should never have to use it as a resolution... it feels hacky
+    # though)
     AVERAGE_TYPE_TIMEDELTAS = {
         'month': None,
         'week': timedelta(7, 0, 0),
@@ -86,6 +88,10 @@ class PowerAverage(models.Model):
 
     @classmethod
     def average_type_sql(cls, average_type, reading_time_field):
+        '''
+        Return SQL (Postgres) for computing a truncated reading time
+        from the original one.  (Hard to explain; look at the code.)
+        '''
         if average_type == 'minute*10':
             return ('''date_trunc('hour', %s) 
                        + FLOOR(EXTRACT(MINUTE FROM %s) / 10)
@@ -104,6 +110,10 @@ class PowerAverage(models.Model):
 
     @classmethod
     def date_trunc(self, field, dt):
+        '''
+        Return a truncated datetime, given the name of an average type
+        and a datetime object.
+        '''
         if field == 'second*10':
             return datetime(dt.year, dt.month, dt.day, dt.hour, dt.minute, 
                             dt.second - dt.second % 10)
@@ -126,6 +136,11 @@ class PowerAverage(models.Model):
 
     @classmethod
     def graph_data_execute(cls, cur, res, start_dt, end_dt=None):
+        '''
+        Using the supplied DB cursor, execute a query that selects
+        the data for e.g. a graph starting at datetime start_dt,
+        ending at datetime end_dt, and having resolution res.
+        '''
         cur.execute('''SELECT 
                          AVG(graph_poweraverage.watts) / 1000, 
                          graph_sensor.id, 
@@ -155,6 +170,10 @@ class PowerAverage(models.Model):
     @classmethod
     def insert_averages(cls, cur, average_type, sensor, 
                         trunc_latest_reading_time):
+        '''
+        Insert power averages for the given average type, for all
+        sensor readings before trunc_latest_reading_time.
+        '''
         trunc_sql = cls.average_type_sql(average_type, 'reading_time')
         # The query below effectively does the following:
         # 1. Finds all truncated reading times in graph_sensorreading,
