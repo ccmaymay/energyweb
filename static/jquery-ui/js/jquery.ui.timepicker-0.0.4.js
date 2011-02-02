@@ -587,11 +587,15 @@
             retVal.minutes = parseInt(timeVal.substr(p + 1), 10);
 
             var showPeriod = (this._get(inst, 'showPeriod') == true);
-            if (retVal.hours < 12 && showPeriod) {
+            if (showPeriod) {
                 var timeValUpper = timeVal.toUpperCase();
                 if (timeValUpper.indexOf(amPmText[1].toUpperCase()) != -1) {
-                    retVal.hours += 12;
+                    // PM
+                    if (retVal.hours < 12) {
+                        retVal.hours += 12;
+                    }
                 } else if (retVal.hours == 12) {
+                    // 12 AM
                     retVal.hours = 0;
                 }
             }
