@@ -225,6 +225,7 @@ class PowerAverage(models.Model):
              sensor.pk, 
              average_type, 
              trunc_latest_reading_time))
+        return cur.rowcount
 
     def __unicode__(self):
         return '%s for %s starting %s' % (self.sensor, self.average_type, 

@@ -29,6 +29,7 @@ class Command(BaseCommand):
             except SensorReading.DoesNotExist:
                 pass # No readings: nothing to do.
             else:
+                print 'Inserting missing averages for sensor %d:' % sensor.id
                 for average_type in PowerAverage.AVERAGE_TYPES:
                     # Don't confuse trunc_latest_reading_time with the
                     # similarly-named column of graph_poweraverage.
@@ -38,8 +39,6 @@ class Command(BaseCommand):
                     trunc_latest_reading_time = PowerAverage.date_trunc(
                         average_type, latest_reading.reading_time)
 
-                    print ('Inserting missing averages for \'%s\'.'
-                           % average_type)
-
-                    PowerAverage.insert_averages(cur, average_type, sensor,
+                    r = PowerAverage.insert_averages(cur, average_type, sensor,
                         trunc_latest_reading_time)
+                    print '    \'%s\': %d rows' % (average_type, r)
