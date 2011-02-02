@@ -41,4 +41,5 @@ class Command(BaseCommand):
 
                     r = PowerAverage.insert_averages(cur, average_type, sensor,
                         trunc_latest_reading_time)
+                    transaction.commit_unless_managed()
                     print '    \'%s\': %d rows' % (average_type, r)
