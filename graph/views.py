@@ -5,7 +5,7 @@ from django.template import RequestContext
 from django.core.urlresolvers import reverse
 from django.conf import settings
 from django import forms
-from graph.models import SensorGroup, Sensor, PowerAverage
+from energyweb.graph.models import SensorGroup, Sensor, PowerAverage
 import calendar, datetime, simplejson
 
 
@@ -171,7 +171,7 @@ def dynamic_graph(request):
     data = str(int(calendar.timegm(start_dt.timetuple()) * 1000))
     return render_to_response('graph/dynamic_graph.html', 
         {'sensor_groups': _get_sensor_groups()[0],
-         'data_url': reverse('graph.views.dynamic_graph_data', 
+         'data_url': reverse('energyweb.graph.views.dynamic_graph_data', 
                              kwargs={'data': data}) + '?junk=' + junk},
         context_instance=RequestContext(request))
 
@@ -278,7 +278,7 @@ def dynamic_graph_data(request, data):
         desired_first_record = x - 1000*3600*3 + 1000*10
     
         junk = str(calendar.timegm(datetime.datetime.now().timetuple()))
-        data_url = reverse('graph.views.dynamic_graph_data', 
+        data_url = reverse('energyweb.graph.views.dynamic_graph_data', 
                            kwargs={'data': str(last_record)}) + '?junk=' + junk
         d = {'no_results': False,
              'sg_xy_pairs': sg_xy_pairs,
@@ -323,7 +323,7 @@ def static_graph(request):
             js_end = int_end * 1000
             junk = str(calendar.timegm(datetime.datetime.now().timetuple()))
 
-            data_url = reverse('graph.views.static_graph_data',
+            data_url = reverse('energyweb.graph.views.static_graph_data',
                                kwargs={'start': str(int_start), 
                                        'end': str(int_end), 
                                        'res': res}) + '?junk=' + junk
@@ -333,12 +333,12 @@ def static_graph(request):
                  'end': js_end,
                  'data_url': data_url,
                  'form': form,
-                 'form_action': reverse('graph.views.static_graph'),
+                 'form_action': reverse('energyweb.graph.views.static_graph'),
                  'res': res},
                 context_instance=RequestContext(request))
 
         return render_to_response('graph/static_graph_form.html',
-            {'form_action': reverse('graph.views.static_graph'),
+            {'form_action': reverse('energyweb.graph.views.static_graph'),
              'form': form},
             context_instance=RequestContext(request))
 
@@ -350,7 +350,7 @@ def static_graph(request):
             'end': now
         })
         return render_to_response('graph/static_graph_form.html',
-            {'form_action': reverse('graph.views.static_graph'),
+            {'form_action': reverse('energyweb.graph.views.static_graph'),
              'form': form},
             context_instance=RequestContext(request))
 

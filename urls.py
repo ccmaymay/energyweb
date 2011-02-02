@@ -14,7 +14,7 @@ from django.conf import settings
 
 urlpatterns = patterns('',
     (r'^$', 'django.views.generic.simple.redirect_to', {'url': '/graph/'}),
-    (r'^graph/', include('graph.urls')),
+    (r'^graph/', include('energyweb.graph.urls')),
 
     # Uncomment the following two lines so that the Django development
     # server will serve static files (js, css) for you.

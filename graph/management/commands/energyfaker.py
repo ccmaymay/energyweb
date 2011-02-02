@@ -16,13 +16,13 @@ initialization.
 import socket, psycopg2, datetime, atexit, signal, time, sys
 from django.core.management.base import BaseCommand, CommandError
 from django.conf import settings
-from graph.daemon import Daemon
+from energyweb.graph.daemon import Daemon
 from logging import error, info, debug, basicConfig
-from graph.fake_rhizome_profiles import FAKE_RHIZOME_PROFILES
+from energyweb.graph.fake_rhizome_profiles import FAKE_RHIZOME_PROFILES
 from SocketServer import TCPServer, BaseRequestHandler
 from random import random, randint
 from binascii import unhexlify
-from graph.models import Sensor
+from energyweb.graph.models import Sensor
 
 
 class FakeRhizomeHandler(BaseRequestHandler):

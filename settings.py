@@ -95,7 +95,7 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.sites',
     'django.contrib.messages',
-    'graph',
+    'energyweb.graph',
     # Uncomment the next line to enable the admin:
     #'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:
@@ -109,8 +109,8 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'django.core.context_processors.i18n',
     'django.core.context_processors.media',
     'django.contrib.messages.context_processors.messages',
-    'graph.context_processors.media_url',
-    'graph.context_processors.nav_urls',
+    'energyweb.graph.context_processors.media_url',
+    'energyweb.graph.context_processors.nav_urls',
 )
 
 

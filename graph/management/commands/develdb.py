@@ -9,7 +9,7 @@ settings to those used by energyfaker.
 
 from django.core.management.base import BaseCommand, CommandError
 from django.db.models import F
-from graph.models import Sensor
+from energyweb.graph.models import Sensor
 
 
 class Command(BaseCommand):

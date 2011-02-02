@@ -16,10 +16,10 @@ and a command (start, stop, restart).  Daemonize on initialization.
 import socket, psycopg2, datetime, os.path, time, atexit, signal, sys
 from django.core.management.base import BaseCommand, CommandError
 from binascii import hexlify
-from graph.daemon import Daemon
+from energyweb.graph.daemon import Daemon
 from django.conf import settings
 from logging import error, info, debug, basicConfig
-from graph.models import Sensor, PowerAverage, SensorReading
+from energyweb.graph.models import Sensor, PowerAverage, SensorReading
 from django.db.models import Avg, Max, Min, Count
 from django.db import connection, transaction
 

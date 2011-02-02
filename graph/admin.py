@@ -1,4 +1,4 @@
-from graph.models import Sensor, SensorGroup, SensorReading, PowerAverage
+from energyweb.graph.models import Sensor, SensorGroup, SensorReading, PowerAverage
 from django.contrib import admin
 
 admin.site.register(SensorGroup)
