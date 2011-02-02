@@ -591,6 +591,8 @@
                 var timeValUpper = timeVal.toUpperCase();
                 if (timeValUpper.indexOf(amPmText[1].toUpperCase()) != -1) {
                     retVal.hours += 12;
+                } else if (retVal.hours == 12) {
+                    retVal.hours = 0;
                 }
             }
 
@@ -670,6 +672,9 @@
             if (showPeriod) {
                 if (inst.hours < 12) {
                     period = amPmText[0];
+                    if (displayHours == 0) {
+                        displayHours = 12;
+                    }
                 }
                 else {
                     period = amPmText[1];
