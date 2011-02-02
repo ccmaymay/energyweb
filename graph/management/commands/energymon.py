@@ -88,7 +88,6 @@ class EnergyMonDaemon(Daemon):
                 time.sleep(settings.ERROR_PAUSE)
 
     def init_power_averages(self):
-        cur = connection.cursor()
         self.power_averages = {}
         power_average_qs = PowerAverage.objects.filter(
             sensor=self.sensor).order_by('-trunc_reading_time')
@@ -108,16 +107,6 @@ class EnergyMonDaemon(Daemon):
                 # for this sensor.
                 trunc_latest_reading_time = PowerAverage.date_trunc(
                     average_type, latest_reading.reading_time)
-                # WHAT IS ALL THIS EVEN FOR??
-                # Isn't the only issue that sometimes we need to save the
-                # last period's average after a reboot?  Why not put most
-                # of this in a separate script for manual repairs?
-                # And NOW we're saving every iteration, too...!
-                # TODO: move this line elsewhere?
-                debug('Inserting missing averages for \'%s\'.' % average_type)
-                PowerAverage.insert_averages(cur, average_type, self.sensor,
-                    trunc_latest_reading_time)
-                transaction.commit()
 
                 try:
                     latest_average = power_average_qs.filter(
