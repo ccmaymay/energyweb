@@ -5,7 +5,9 @@ from django.template import RequestContext
 from django.core.urlresolvers import reverse
 from django.conf import settings
 from django import forms
-from energyweb.graph.models import SensorGroup, Sensor, PowerAverage
+from django.db.models import Avg, Max, Min, Count
+from energyweb.graph.models import SensorGroup, SensorReading, Sensor, \
+                                   PowerAverage, SRProfile
 import calendar, datetime, simplejson
 
 
@@ -421,6 +423,43 @@ def static_graph_data(request, start, end, res):
     json_serializer = serializers.get_serializer("json")()
     return HttpResponse(simplejson.dumps(d),
                         mimetype='application/json')
+
+
+def mon_status_data(request):
+    junk = str(calendar.timegm(datetime.datetime.now().timetuple()))
+    (sensor_groups, sensor_ids, sensor_ids_by_group) = _get_sensor_groups()
+    sreadings = dict()
+    for s_id in sensor_ids:
+        sreadings[s_id] = [None, None, None, None]
+        try:
+            sr = SensorReading.objects.filter(sensor__id=s_id).latest('reading_time')
+            sreadings[s_id][0] = [
+                int(calendar.timegm(sr.reading_time.timetuple()) * 1000),
+            ]
+        except SensorReading.DoesNotExist:
+            pass
+        # TODO: magic number
+        d = SRProfile.objects.filter(sensor_reading__sensor__id=s_id, sensor_reading__reading_time__gte=(datetime.datetime.now() - datetime.timedelta(1))).aggregate(
+            Avg('transaction_time'), 
+            Min('transaction_time'),
+            Max('transaction_time')) 
+        sreadings[s_id][1] = int(d['transaction_time__avg'])
+        sreadings[s_id][2] = d['transaction_time__min']
+        sreadings[s_id][3] = d['transaction_time__max']
+    return HttpResponse(simplejson.dumps({'sensor_readings': sreadings,
+                                          'sensor_groups': sensor_groups,
+                                          'data_url': reverse('energyweb.graph.views.mon_status_data')
+                                                              + '?junk=' + junk}),
+                        mimetype='application/json')
+
+
+def mon_status(request):
+    junk = str(calendar.timegm(datetime.datetime.now().timetuple()))
+    return render_to_response('graph/mon_status.html',
+        {'sensor_groups': _get_sensor_groups()[0],
+         'data_url': reverse('energyweb.graph.views.mon_status_data')
+                             + '?junk=' + junk},
+        context_instance=RequestContext(request))
 
 
 if settings.DEBUG:

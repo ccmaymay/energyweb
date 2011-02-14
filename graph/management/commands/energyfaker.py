@@ -17,12 +17,12 @@ import socket, psycopg2, datetime, atexit, signal, time, sys
 from django.core.management.base import BaseCommand, CommandError
 from django.conf import settings
 from energyweb.graph.daemon import Daemon
-from logging import error, info, debug, basicConfig
+from logging import error, info, debug, basicConfig, DEBUG as LOGGING_DEBUG
 from energyweb.graph.fake_rhizome_profiles import FAKE_RHIZOME_PROFILES
 from SocketServer import TCPServer, BaseRequestHandler
 from random import random, randint
 from binascii import unhexlify
-from energyweb.graph.models import Sensor
+from energyweb.graph.models import Sensor, Setting
 
 
 class FakeRhizomeHandler(BaseRequestHandler):
@@ -103,7 +103,7 @@ class FakeRhizomeDaemon(Daemon):
         '''
         basicConfig(filename=(settings.FAKER_LOG_FILE_TEMPL % sensor_id),
                     format=settings.LOG_FORMAT, datefmt=settings.LOG_DATEFMT, 
-                    level=settings.LOG_LEVEL)
+                    level=LOGGING_DEBUG)
 
         # Register exit and signal behaviors.
         atexit.register(self.cleanup)

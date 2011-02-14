@@ -12,4 +12,5 @@ def nav_urls(request):
     from django.core.urlresolvers import reverse
     return {'dynamic_graph_url': reverse('energyweb.graph.views.dynamic_graph'),
             'static_graph_url': reverse('energyweb.graph.views.static_graph'),
+            'mon_status_url': reverse('energyweb.graph.views.mon_status'),
             'data_interface_url': reverse('energyweb.graph.views.data_interface')}

@@ -218,5 +218,23 @@
             "factor": 6.0, 
             "port": 4001
         }
+    },
+    {
+        "pk": 1, 
+        "model": "graph.setting", 
+        "fields": {
+            "name": "mon_debugging", 
+            "value_type": "bool", 
+            "value": "true" 
+        }
+    },
+    {
+        "pk": 2, 
+        "model": "graph.setting", 
+        "fields": {
+            "name": "mon_profiling", 
+            "value_type": "bool", 
+            "value": "true" 
+        }
     }
 ]

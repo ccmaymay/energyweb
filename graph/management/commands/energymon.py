@@ -13,13 +13,13 @@ and a command (start, stop, restart).  Daemonize on initialization.
 '''
 
 
-import socket, psycopg2, datetime, os.path, time, atexit, signal, sys
+import socket, psycopg2, datetime, os.path, time, atexit, signal, sys, logging
 from django.core.management.base import BaseCommand, CommandError
 from binascii import hexlify
 from energyweb.graph.daemon import Daemon
 from django.conf import settings
-from logging import error, info, debug, basicConfig
-from energyweb.graph.models import Sensor, PowerAverage, SensorReading
+from energyweb.graph.models import Sensor, PowerAverage, SensorReading, \
+                                   SRProfile, Setting
 from django.db.models import Avg, Max, Min, Count
 from django.db import connection, transaction
 
@@ -52,7 +52,7 @@ class EnergyMonDaemon(Daemon):
         Close database and socket connections in preparation for
         termination.
         '''
-        info('Cleaning up: rolling back, disconnecting, disconnecting.')
+        logging.info('Cleaning up: rolling back, disconnecting, disconnecting.')
         transaction.rollback()
         if hasattr(self, 'sock'):
             self.sock.close()
@@ -62,11 +62,11 @@ class EnergyMonDaemon(Daemon):
         If a SIGQUIT, SIGTERM, or SIGINT is received, shutdown cleanly.
         '''
         if signum == signal.SIGQUIT:
-            info('Caught SIGQUIT.')
+            logging.info('Caught SIGQUIT.')
         elif signum == signal.SIGTERM:
-            info('Caught SIGTERM.')
+            logging.info('Caught SIGTERM.')
         elif signum == signal.SIGINT:
-            info('Caught SIGINT.')
+            logging.info('Caught SIGINT.')
         # cleanup() will be called since it is registered with atexit
         sys.exit(0)
 
@@ -78,13 +78,13 @@ class EnergyMonDaemon(Daemon):
             try:
                 self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 self.sock.connect((self.sensor.ip, self.sensor.port))
-                info('Socket connected to %s:%d.' 
+                logging.info('Socket connected to %s:%d.' 
                      % (self.sensor.ip, self.sensor.port))
                 break
             except socket.error, detail:
-                error(str(detail))
-                error('Socket error.')
-                error('Pausing, reopening socket.')
+                logging.error(str(detail))
+                logging.error('Socket error.')
+                logging.error('Pausing, reopening socket.')
                 time.sleep(settings.ERROR_PAUSE)
 
     def init_power_averages(self):
@@ -139,6 +139,19 @@ class EnergyMonDaemon(Daemon):
                 else:
                     self.power_averages[average_type] = latest_average
 
+    def set_debugging(self):
+        if Setting.get_value('mon_debugging'):
+            log_level = logging.DEBUG
+        else:
+            log_level = logging.INFO
+        logging.getLogger('').setLevel(log_level)
+
+    def set_profiling(self):
+        if Setting.get_value('mon_profiling'):
+            self.profiling = True
+        else:
+            self.profiling = False
+
     @transaction.commit_manually
     @rollback_on_exception
     def run(self, sensor_id):
@@ -146,9 +159,11 @@ class EnergyMonDaemon(Daemon):
         Perform the main listen and insert loop of the program.
         (See file and class docstrings.)
         '''
-        basicConfig(filename=(settings.MON_LOG_FILE_TEMPL % sensor_id),
-                    format=settings.LOG_FORMAT, datefmt=settings.LOG_DATEFMT, 
-                    level=settings.LOG_LEVEL)
+            
+        logging.basicConfig(filename=(settings.MON_LOG_FILE_TEMPL % sensor_id),
+            format=settings.LOG_FORMAT, datefmt=settings.LOG_DATEFMT)
+        self.set_debugging()
+        self.set_profiling()
 
         # Register exit and signal behaviors.
         atexit.register(self.cleanup)
@@ -159,7 +174,7 @@ class EnergyMonDaemon(Daemon):
 
         self.sensor = Sensor.objects.get(pk=sensor_id)
 
-        debug('Initializing power averages.')
+        logging.debug('Initializing power averages.')
         self.init_power_averages()
         transaction.commit()
 
@@ -174,28 +189,30 @@ class EnergyMonDaemon(Daemon):
     
         while True:
             data = ''
-            debug('Listening for data.')
+            logging.debug('Listening for data.')
             # Loop until all 45 bytes of the message are collected.
             while len(data) < 45:
                 data_recvd = self.sock.recv(1024)
                 if data_recvd == '':
-                    error('Socket died.  Printing data, closing, reopening.')
-                    error(hexlify(data) + '.')
+                    logging.error('Socket died.  Printing data, closing, reopening.')
+                    logging.error(hexlify(data) + '.')
                     self.sock.close()
                     self.open_socket()
                     data = ''
                 else:
                     data += data_recvd
-            debug('Data received.  (45 bytes)')
+            logging.debug('Data received.  (45 bytes)')
             if data[0:4] != 'RTSD': # 52 54 53 44 in hex
-                error('Bad data.  Printing data, closing socket, reopening.')
-                error(hexlify(data) + '.')
+                logging.error('Bad data.  Printing data, closing socket, reopening.')
+                logging.error(hexlify(data) + '.')
                 self.sock.close()
                 self.open_socket()
             else:
+                if self.profiling:
+                    transaction_start = time.time()
                 # If the rudimentary validation succeeded, proceed to
                 # interpret the data for processing and storage.
-                debug('Data validated.')
+                logging.debug('Data validated.')
                 d = {}
                 d['rindex'] = ord(data[4])
                 # Lots of little uints
@@ -231,12 +248,16 @@ class EnergyMonDaemon(Daemon):
                 d['reading_time'] = reading_time
                 d['sensor'] = self.sensor
     
-                SensorReading.objects.create(**d)
+                sensor_reading = SensorReading.objects.create(**d)
 
                 # Precompute averages (we have 10 seconds until the 
                 # next message.
                 watts = (d['awatthr'] + d['bwatthr'] 
                          + d['cwatthr'] * phase_factor)
+
+                if self.profiling:
+                    num_pa_inserts = 0
+                    num_pa_updates = 0
 
                 for average_type in PowerAverage.AVERAGE_TYPES:
                     trunc_reading_time = PowerAverage.date_trunc(average_type,
@@ -264,13 +285,29 @@ class EnergyMonDaemon(Daemon):
                             first_reading_time=reading_time,
                             last_reading_time=reading_time,
                             trunc_reading_time=trunc_reading_time)
+                        if self.profiling:
+                            num_pa_inserts += 1
                     self.power_averages[average_type].save()
+                    if self.profiling:
+                        num_pa_updates += 1
 
                 transaction.commit()
-                debug('Data processed.')
+                logging.debug('Data processed.')
+                if self.profiling:
+                    SRProfile.objects.create(
+                        sensor_reading=sensor_reading,
+                        power_average_inserts=num_pa_inserts,
+                        power_average_updates=num_pa_updates,
+                        transaction_time=int((time.time() - transaction_start) 
+                                             * 1000.0))
+                    transaction.commit()
+                    logging.debug('Sensor reading profile saved.')
+
+                self.set_debugging()
+                self.set_profiling()
     
         self.cleanup()
-        info('Past main loop.  Exiting.')
+        logging.info('Past main loop.  Exiting.')
         sys.exit(0)
 
 

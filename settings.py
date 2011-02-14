@@ -116,8 +116,6 @@ TEMPLATE_CONTEXT_PROCESSORS = (
 
 # Energyweb stuff.
 
-from logging import INFO as _LOGGING_INFO, DEBUG as _LOGGING_DEBUG
-
 
 # AVG_TYPES is a tuple of time periods over which readings will be
 # averaged (the averages being stored in power_averages).  The values
@@ -135,10 +133,6 @@ FAKER_SLEEP_VARIATION = 0.1
 
 LOG_FORMAT = '%(asctime)s %(levelname)-8s %(message)s'
 LOG_DATEFMT = '%Y-%m-%d %H:%M:%S'
-if DEBUG:
-    LOG_LEVEL = _LOGGING_DEBUG
-else:
-    LOG_LEVEL = _LOGGING_INFO
 
 # If a socket error is encountered, wait this many seconds before
 # trying to reconnect.

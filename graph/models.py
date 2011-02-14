@@ -233,3 +233,42 @@ class PowerAverage(models.Model):
 
     class Meta:
         unique_together = (('trunc_reading_time', 'sensor', 'average_type'),)
+
+
+class SRProfile(models.Model):
+    sensor_reading = models.ForeignKey(SensorReading)
+    power_average_inserts = models.IntegerField()
+    power_average_updates = models.IntegerField()
+    transaction_time = models.IntegerField()
+
+
+class Setting(models.Model):
+    VALUE_TYPE_CHOICES = (('bool', 'Boolean'),)
+    name = models.CharField(max_length=32, unique=True)
+    value_type = models.CharField(max_length=32, choices=VALUE_TYPE_CHOICES)
+    value = models.TextField(blank=True)
+
+    @classmethod
+    def get_value(cls, name):
+        s = cls.objects.get(name=name)
+        if s.value_type == 'bool':
+            if s.value == 'true':
+                return True
+            elif s.value == 'false':
+                return False
+            else:
+                raise ValueError('Value does not match value type %s: .' % (s.value_type, s.value))
+        else:
+            raise ValueError('Invalid value type: %s.' % s.value_type)
+
+    @classmethod
+    def set_value(cls, name, value):
+        s = cls.objects.get(name=name)
+        if s.value_type == 'bool':
+            if value:
+                s.value = 'true'
+            else:
+                s.value = 'false'
+        else:
+            raise ValueError('Invalid value type: %s.' % s.value_type)
+        s.save()
