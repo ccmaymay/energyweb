@@ -31,7 +31,7 @@
         {% for sg in sensor_groups %}
             {% for s in sg.3 %}
                 <tr>
-                    <td class="sensorcol">{{ sg.1 }} {{ s.1 }}</td>
+                    <td class="sensorcol" id="sensor-name-{{ s.0 }}">{{ sg.1 }} {{ s.1 }}</td>
                     <td id="last-reading-{{ s.0 }}"></td>
                     <td id="avg-time-{{ s.0 }}"></td>
                     <td id="min-time-{{ s.0 }}"></td>

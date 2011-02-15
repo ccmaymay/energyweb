@@ -433,9 +433,7 @@ def mon_status_data(request):
         sreadings[s_id] = [None, None, None, None]
         try:
             sr = SensorReading.objects.filter(sensor__id=s_id).latest('reading_time')
-            sreadings[s_id][0] = [
-                int(calendar.timegm(sr.reading_time.timetuple()) * 1000),
-            ]
+            sreadings[s_id][0] = int(calendar.timegm(sr.reading_time.timetuple()) * 1000)
         except SensorReading.DoesNotExist:
             pass
         # TODO: magic number

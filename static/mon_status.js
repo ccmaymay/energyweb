@@ -4,12 +4,16 @@ $(function () {
     var first_time = true;
     var sensor_groups = null;
 
-    function update_cell(name, val) {
-        $(name).empty();
+    function update_cell(name, val, also_label) {
         if ($(name).text() != val) {
+            $(name).empty();
             $(name).append(val);
-            $(name).animate({ backgroundColor: "#009900" }, 600);
+            $(name).animate({ backgroundColor: "#99ee99" }, 400);
             $(name).animate({ backgroundColor: "#ffffff" }, 600);
+            if (also_label) {
+                $(also_label).animate({ backgroundColor: "#99ee99" }, 400);
+                $(also_label).animate({ backgroundColor: "#ffffff" }, 600);
+            }
         }
     }
 
@@ -43,10 +47,10 @@ $(function () {
                 sensor_id = sensor_groups[i][3][j][0];
 
                 if (sensor_id in data.sensor_readings) {
-                    update_cell('#last-reading-' + sensor_id, Date(data.sensor_readings[sensor_id][0]));
-                    update_cell('#avg-time-' + sensor_id, data.sensor_readings[sensor_id][1]);
-                    update_cell('#min-time-' + sensor_id, data.sensor_readings[sensor_id][2]);
-                    update_cell('#max-time-' + sensor_id, data.sensor_readings[sensor_id][3]);
+                    update_cell('#last-reading-' + sensor_id, (new Date(data.sensor_readings[sensor_id][0])).toString(), '#sensor-name-' + sensor_id);
+                    update_cell('#avg-time-' + sensor_id, data.sensor_readings[sensor_id][1], false);
+                    update_cell('#min-time-' + sensor_id, data.sensor_readings[sensor_id][2], false);
+                    update_cell('#max-time-' + sensor_id, data.sensor_readings[sensor_id][3], false);
                 }
             }
         }
@@ -55,7 +59,7 @@ $(function () {
             first_time = false;
         }
     
-        setTimeout(refreshdata, 10000);
+        setTimeout(refreshdata, 2000);
     }
     
     function refreshdata() {
