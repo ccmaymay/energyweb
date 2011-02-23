@@ -19,7 +19,7 @@ from binascii import hexlify
 from energyweb.graph.daemon import Daemon
 from django.conf import settings
 from energyweb.graph.models import Sensor, PowerAverage, SensorReading, \
-                                   SRProfile, Setting
+                                   SRProfile, Setting, Signal
 from django.db.models import Avg, Max, Min, Count
 from django.db import connection, transaction
 
@@ -140,17 +140,20 @@ class EnergyMonDaemon(Daemon):
                     self.power_averages[average_type] = latest_average
 
     def set_debugging(self):
-        if Setting.get_value('mon_debugging'):
+        if Setting.get_value_of('mon_debugging'):
             log_level = logging.DEBUG
         else:
             log_level = logging.INFO
         logging.getLogger('').setLevel(log_level)
 
     def set_profiling(self):
-        if Setting.get_value('mon_profiling'):
+        if Setting.get_value_of('mon_profiling'):
             self.profiling = True
         else:
             self.profiling = False
+
+    def check_stop(self):
+        return Signal.dequeue('mon_stop', data=str(self.sensor.pk)) is not None
 
     @transaction.commit_manually
     @rollback_on_exception
@@ -305,8 +308,11 @@ class EnergyMonDaemon(Daemon):
 
                 self.set_debugging()
                 self.set_profiling()
+                if self.check_stop():
+                    transaction.commit()
+                    logging.info('Stop requested.')
+                    break
     
-        self.cleanup()
         logging.info('Past main loop.  Exiting.')
         sys.exit(0)
 
@@ -329,6 +335,8 @@ class Command(BaseCommand):
             if args[1] == 'start':
                 daemon.start()
             elif args[1] == 'stop':
+                Signal.enqueue('mon_stop', str(sensor_id))
+            elif args[1] == 'force-stop':
                 daemon.stop()
             elif args[1] == 'restart':
                 daemon.restart()

@@ -21,7 +21,7 @@ class Sensor(models.Model):
 
     def __unicode__(self):
         if self.name:
-            return '%s %s' % (self.sensor_group.name, self.name)
+            return u'%s %s' % (self.sensor_group.name, self.name)
         else:
             return self.sensor_group.name
 
@@ -49,7 +49,7 @@ class SensorReading(models.Model):
     tempc = models.IntegerField()
 
     def __unicode__(self):
-        return '%s at %s' % (self.sensor, self.reading_time)
+        return u'%s at %s' % (self.sensor, self.reading_time)
 
 
 class PowerAverage(models.Model):
@@ -228,8 +228,8 @@ class PowerAverage(models.Model):
         return cur.rowcount
 
     def __unicode__(self):
-        return '%s for %s starting %s' % (self.sensor, self.average_type, 
-                                          self.trunc_reading_time)
+        return u'%s for %s starting %s' % (self.sensor, self.average_type, 
+                                           self.trunc_reading_time)
 
     class Meta:
         unique_together = (('trunc_reading_time', 'sensor', 'average_type'),)
@@ -248,27 +248,63 @@ class Setting(models.Model):
     value_type = models.CharField(max_length=32, choices=VALUE_TYPE_CHOICES)
     value = models.TextField(blank=True)
 
-    @classmethod
-    def get_value(cls, name):
-        s = cls.objects.get(name=name)
-        if s.value_type == 'bool':
-            if s.value == 'true':
+    def get_value(self):
+        if self.value_type == 'bool':
+            if self.value == 'true':
                 return True
-            elif s.value == 'false':
+            elif self.value == 'false':
                 return False
             else:
-                raise ValueError('Value does not match value type %s: .' % (s.value_type, s.value))
+                raise ValueError('Value does not match value type %s: .' % (self.value_type, self.value))
         else:
-            raise ValueError('Invalid value type: %s.' % s.value_type)
+            raise ValueError('Invalid value type: %s.' % self.value_type)
 
     @classmethod
-    def set_value(cls, name, value):
+    def get_value_of(cls, name):
         s = cls.objects.get(name=name)
-        if s.value_type == 'bool':
+        return s.get_value()
+
+    def set_value(self, value):
+        if self.value_type == 'bool':
             if value:
-                s.value = 'true'
+                self.value = 'true'
             else:
-                s.value = 'false'
+                self.value = 'false'
         else:
-            raise ValueError('Invalid value type: %s.' % s.value_type)
-        s.save()
+            raise ValueError('Invalid value type: %s.' % self.value_type)
+        self.save()
+
+    @classmethod
+    def set_value_of(cls, name, value):
+        s = cls.objects.get(name=name)
+        return s.set_value(value)
+
+    def __unicode__(self):
+        return u'%s: %s' % (self.name, self.value)
+
+
+class Signal(models.Model):
+    name = models.CharField(max_length=32)
+    data = models.TextField(blank=True)
+
+    @classmethod
+    def dequeue(cls, name, **filter_args):
+        signals = cls.objects.filter(name=name)
+        if filter_args:
+            signals = signals.filter(**filter_args)
+        try:
+            signal = signals.order_by('pk')[0]
+            signal.delete()
+            return signal.data
+        except IndexError:
+            return None
+
+    @classmethod
+    def enqueue(cls, name, data=None):
+        if data is None:
+            cls.objects.create(name=name)
+        else:
+            cls.objects.create(name=name, data=data)
+
+    def __unicode__(self):
+        return u'%s: %s' % (self.name, self.data)
