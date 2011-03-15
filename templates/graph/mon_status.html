@@ -21,12 +21,17 @@
     </colgroup>
 
     <tbody>
+        <tr id="toprow">
+            <th class="sensorcol"></th>
+            <th></th>
+            <th colspan="3">Processing Times (ms)</th>
+        </tr>
         <tr>
             <th class="sensorcol">Sensor</th>
             <th>Last Reading</th>
-            <th>Avg. Time</th>
-            <th>Min. Time</th>
-            <th>Max. Time</th>
+            <th>Avg.</th>
+            <th>Min.</th>
+            <th>Max.</th>
         </tr>
         {% for sg in sensor_groups %}
             {% for s in sg.3 %}

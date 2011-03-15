@@ -196,3 +196,8 @@ table#monstatus
 {
     text-align: left;
 }
+
+#monstatus tbody tr#toprow th
+{
+    border-bottom: none;
+}
